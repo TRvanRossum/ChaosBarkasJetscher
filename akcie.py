@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import datetime
 from barkas import Barkas
-from bestellingen import Bestelling
 from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
-GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Chaos', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
+GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
 CONSUMPTIES = ['Fris', 'Pul Fris', 'Safari', 'Apfelkorn', 'Eristoff', 'Jagermeister', 'Likeur 43', 'Pitcher bier', 'Peach Tree ']
 S50 = ['bacardi razz', 'honingwijn']
+SCORES = {}
 BESTELLINGEN = {}
 
 class Example(Frame):
@@ -27,11 +27,16 @@ class Example(Frame):
             self.scores[i] = StringVar()
 
         for g in GROEPERINGEN:
-            BESTELLINGEN[g] = Bestelling(g)
+            BESTELLINGEN[g] = self.get_null_order()
+            SCORES[g] = 0
 
         self.initUI()
-        #self.update_scores()
-    
+        self.update_scores()
+
+    def get_null_order(self):
+        res = {'Fris': 0, 'Pul Fris': 0, 'Safari': 0, 'Apfelkorn': 0, 'Eristoff': 0, 'Jagermeister': 0, 'Likeur 43': 0, 'Pitcher bier': 0, 'Peach Tree ': 0, 'Bier': 0, 'bacardi razz': 0, 'honingwijn': 0}
+        return res
+
     def initUI(self):
         self.parent.title("Scores")
         for i, g in enumerate(GROEPERINGEN):
@@ -61,14 +66,39 @@ class Example(Frame):
 
         return orders
 
+    def normalize_orders(self, order):
+        res = {}
+        sum = 0
+        for n, v in order:
+            sum += v
+        if sum == 0:
+            return order
+        for n, v in order:
+            res[n] = float(v)/float(sum)
+        return res
 
-    def chi_square_dist(self, orders_Chaos, orders_other):
+    def compare_old_and_new_orders(self, old, new):
+        changed = False
+        new_order = {}
+        for n, v in old:
+            if v < new[n]:
+                changed = True
+            new_order[n] = new[n] - v
+
+        return (changed, new_order)
+
+    def chi_square_sim(self, orders_Chaos, orders_other):
         dist = 0
         for name, val in orders_Chaos:
             if val > 0:
-                dist += ((val - orders_other[name])**2/val)
+                dist += (float((val - orders_other[name])**2)/float(val))
 
-        return dist
+        # Return the inverted distance times 100. A higher distance means that orders are further off what Chaos has ordered, and
+        # thus inverting and then multiplying it by 100 means a higher score to an order similar to Chaos.
+        if dist > 0:
+            return (1.0/float(dist))*100
+        else:
+            return 0
 
 
     def update_scores(self):
@@ -77,17 +107,17 @@ class Example(Frame):
         # Get orders of Chaos
         orders_Chaos = self.get_total_orders_of_group('Chaos')
 
+        # For every group, check if a new order has been made.
+        # If so, compare this to what Chaos has ordered.
+        for g in GROEPERINGEN:
+            g_orders_old = BESTELLINGEN[g]
+            g_orders_new = self.get_total_orders_of_group(g)
+            (changed, new_orders) = self.compare_old_and_new_orders(g_orders_old, g_orders_new)
+            # If a new order has been placed by a group, update the score of that group.
+            if changed:
+                similarity = self.chi_square_sim(self.normalize_orders(orders_Chaos), self.normalize_orders(new_orders))
+                SCORES[g] += similarity
 
-
-
-        scores = {}
-
-        for i, (g, s) in enumerate(sorted(scores.items(), key=lambda x: x[1], reverse=True)):
-            print(i, g, s)
-            self.names[i].set(g)
-            self.scores[i].set("%d" % s)
-
-        print
 
         self.after(3000, self.update_scores)
         
