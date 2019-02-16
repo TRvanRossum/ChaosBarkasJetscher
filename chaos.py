@@ -28,11 +28,11 @@ class Example(Frame):
 
         for g in GROEPERINGEN:
             BESTELLINGEN[g] = self.get_null_order()
-            SCORES[g] = 0
+            SCORES[g] = 0.0
 
         self.initUI()
-        #elf.update_scores_test()
-        self.update_scores()
+        self.update_scores_test()
+        #self.update_scores()
 
     def get_null_order(self):
         res = {'Fris': 0, 'Pul Fris': 0, 'Safari': 0, 'Apfelkorn': 0, 'Eristoff': 0, 'Jagermeister': 0, 'Likeur 43': 0, 'Pitcher bier': 0, 'Peach Tree ': 0, 'Bier': 0, 'bacardi razz': 0, 'honingwijn': 0}
@@ -115,6 +115,8 @@ class Example(Frame):
 
     def update_scores_test(self):
         print("Update")
+        print(SCORES)
+        SCORES['Krat'] += 1.0
         self.after(1000, self.update_scores_test)
         
 
