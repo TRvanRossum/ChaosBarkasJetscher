@@ -8,9 +8,9 @@ from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Chaos', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
-CONSUMPTIES = {'Fris': 2, 'Pul Fris': 6, 'Safari': 3, 'Apfelkorn': 3, 'Eristoff': 3, 'Jagermeister': 3, 'Likeur 43': 3, 'Pitcher bier': 6, 'Peach Tree ': 3}
-S50 = {'bacardi razz': 40, 'honingwijn': 15}
-BESTELINGEN = {}
+CONSUMPTIES = ['Fris', 'Pul Fris', 'Safari', 'Apfelkorn', 'Eristoff', 'Jagermeister', 'Likeur 43', 'Pitcher bier', 'Peach Tree ']
+S50 = ['bacardi razz', 'honingwijn']
+BESTELLINGEN = {}
 
 class Example(Frame):
 
@@ -27,7 +27,7 @@ class Example(Frame):
             self.scores[i] = StringVar()
 
         for g in GROEPERINGEN:
-            self.BESTELLINGEN[g] = Bestelling(g)
+            BESTELLINGEN[g] = Bestelling(g)
 
         self.initUI()
         #self.update_scores()
@@ -45,24 +45,42 @@ class Example(Frame):
 
         self.pack(fill=BOTH, expand=1)
 
-    def update_scores(self):
-        print("Update")
+
+    def get_total_orders_of_group(self, group):
         self.barkas = Barkas()
 
-        # date = datetime.date(2015,11,26)
         date = datetime.date.today()
+        orders = {}
+        for name in CONSUMPTIES:
+            orders[name] = self.barkas.get_number_of_consumptions(date, group, name)
+
+        for name in S50:
+            orders[name] = self.barkas.get_number_of_s50(date, group, name)
+
+        orders['Bier'] = self.barkas.get_number_of_beers(date, group)
+
+        return orders
+
+
+    def chi_square_dist(self, orders_Chaos, orders_other):
+        dist = 0
+        for name, val in orders_Chaos:
+            if val > 0:
+                dist += ((val - orders_other[name])**2/val)
+
+        return dist
+
+
+    def update_scores(self):
+        print("Update")
+
+        # Get orders of Chaos
+        orders_Chaos = self.get_total_orders_of_group('Chaos')
+
+
+
 
         scores = {}
-        for g in GROEPERINGEN:
-            score = 2 * self.barkas.get_number_of_beers(date, g)
-
-            for (name, mult) in CONSUMPTIES.items():
-                score += mult * self.barkas.get_number_of_consumptions(date, g, name)
-
-            for (name, mult) in S50.items():
-                score += mult * self.barkas.get_number_of_s50(date, g, name)
-
-            scores[g] = score
 
         for i, (g, s) in enumerate(sorted(scores.items(), key=lambda x: x[1], reverse=True)):
             print(i, g, s)

@@ -16,4 +16,8 @@ class Bestelling():
         for name, val in other:
             res[name] = val - self.bestellingen[name]
 
+        self.bestellingen = other
         return res
+
+    def __str__(self):
+        return self.bestellingen
