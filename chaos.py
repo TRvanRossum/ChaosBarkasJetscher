@@ -85,12 +85,8 @@ class Example(Frame):
             if val > 0:
                 dist += (float((val - orders_other[name])**2)/float(val))
 
-        # Return the inverted distance times 100. A higher distance means that orders are further off what Chaos has ordered, and
-        # thus inverting and then multiplying it by 100 means a higher score to an order similar to Chaos.
-        if dist > 0:
-            return (1.0/float(dist))*100
-        else:
-            return 0
+        # Return 15.0 minus the distance. This is very hacky, but it awards more points for orders very close to us.
+        return 15.0 - dist
 
 
     def update_scores(self):
