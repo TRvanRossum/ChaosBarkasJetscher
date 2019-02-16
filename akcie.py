@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 from barkas import Barkas
+from bestellingen import Bestelling
 from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 
 DATUM = "2015-11-06"
@@ -9,6 +10,7 @@ DRANK = "Bier zwembadfeest"
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Chaos', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
 CONSUMPTIES = {'Fris': 2, 'Pul Fris': 6, 'Safari': 3, 'Apfelkorn': 3, 'Eristoff': 3, 'Jagermeister': 3, 'Likeur 43': 3, 'Pitcher bier': 6, 'Peach Tree ': 3}
 S50 = {'bacardi razz': 40, 'honingwijn': 15}
+BESTELINGEN = {}
 
 class Example(Frame):
 
@@ -23,6 +25,9 @@ class Example(Frame):
         for i, g in enumerate(GROEPERINGEN):
             self.names[i] = StringVar()
             self.scores[i] = StringVar()
+
+        for g in GROEPERINGEN:
+            self.BESTELLINGEN[g] = Bestelling(g)
 
         self.initUI()
         #self.update_scores()
