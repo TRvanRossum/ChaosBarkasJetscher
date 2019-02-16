@@ -4,11 +4,11 @@ import pymysql.cursors
 import time
 import datetime
 from barkas import Barkas
-from Tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
+from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
-GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 119', 'Chaos', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Deurklink', 'Jelmer ter Burg', 'Manon Waling']
+GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Chaos', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
 
 class Example(Frame):
 
@@ -42,7 +42,7 @@ class Example(Frame):
         self.pack(fill=BOTH, expand=1)
 
     def update_scores(self):
-        print "Update"
+        print("Update")
         self.barkas = Barkas()
 
         # date = datetime.date(2015,11,26)
@@ -51,7 +51,7 @@ class Example(Frame):
         scores = {}
         for g in GROEPERINGEN:
             score = 2 * self.barkas.get_number_of_beers(date, g)
-            score += 2* self.barkas.get_number_of_consumptions(date, g, 'Fris')
+            score += 2 * self.barkas.get_number_of_consumptions(date, g, 'Fris')
             score += 6 * self.barkas.get_number_of_consumptions(date, g, 'Pul Fris')
             score += 3 * self.barkas.get_number_of_consumptions(date, g, 'Safari')
             score += 3 * self.barkas.get_number_of_consumptions(date, g, 'Apfelkorn')
@@ -63,7 +63,7 @@ class Example(Frame):
             score += 15 * self.barkas.get_number_of_s50(date, g, 'honingwijn')
             score += 3 * self.barkas.get_number_of_consumptions(date, g, 'Peach Tree ')
             score += 2 * self.barkas.get_number_of_beers(datetime.date(2015,11,30), g)
-            score += 2* self.barkas.get_number_of_consumptions(datetime.date(2015,11,30), g, 'Fris')
+            score += 2 * self.barkas.get_number_of_consumptions(datetime.date(2015,11,30), g, 'Fris')
             score += 6 * self.barkas.get_number_of_consumptions(datetime.date(2015,11,30), g, 'Pul Fris')
             score += 3 * self.barkas.get_number_of_consumptions(datetime.date(2015,11,30), g, 'Safari')
             score += 3 * self.barkas.get_number_of_consumptions(datetime.date(2015,11,30), g, 'Apfelkorn')
@@ -78,7 +78,7 @@ class Example(Frame):
             scores[g] = score
 
         for i, (g, s) in enumerate(sorted(scores.items(), key=lambda x: x[1], reverse=True)):
-            print i, g, s
+            print(i, g, s)
             self.names[i].set(g)
             self.scores[i].set("%d" % s)
 

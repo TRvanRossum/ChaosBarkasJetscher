@@ -3,7 +3,6 @@ import datetime
 import pymysql.cursors
 from fuzzywuzzy import process
 
-
 class Barkas(object):
     def __init__(self):
         self.connection = pymysql.connect(host='192.168.1.1',
