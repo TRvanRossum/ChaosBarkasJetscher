@@ -31,6 +31,7 @@ class Example(Frame):
             SCORES[g] = 0
 
         self.initUI()
+        #elf.update_scores_test()
         self.update_scores()
 
     def get_null_order(self):
@@ -39,16 +40,7 @@ class Example(Frame):
 
     def initUI(self):
         self.parent.title("Scores")
-        for i, g in enumerate(GROEPERINGEN):
-            w = Label(self, textvariable=self.names[i], font=("Helvetica", 15))
-            w.place(rely= 0.95 * i / float(len(GROEPERINGEN)) + 0.05, relx=0.3, anchor=CENTER)
-            self.names[i].set(g)
-
-            w = Label(self, textvariable=self.scores[i], font=("Helvetica", 15))
-            w.place(rely= 0.95 * i / float(len(GROEPERINGEN)) + 0.05, relx=0.6, anchor=CENTER)
-            self.scores[i].set("0")
-
-        self.pack(fill=BOTH, expand=1)
+        w = Label(self, textvariable="Running", font=("Helvetica", 15))
 
 
     def get_total_orders_of_group(self, group):
@@ -120,6 +112,10 @@ class Example(Frame):
 
 
         self.after(3000, self.update_scores)
+
+    def update_scores_test(self):
+        print("Update")
+        self.after(1000, self.update_scores_test)
         
 
 def main():
