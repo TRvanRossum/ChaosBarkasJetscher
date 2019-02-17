@@ -8,7 +8,7 @@ import numpy as np
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
-CONSUMPTIES = ['Fris', 'Pul Fris', 'Safari', 'Apfelkorn', 'Eristoff', 'Jagermeister', 'Likeur 43', 'Pitcher bier', 'Peach Tree ']
+CONSUMPTIES = ['Fris', 'Pul Fris', 'Safari', 'Apfelkorn', 'Eristoff', 'Jagermeister', 'Likeur 43', 'Pitcher bier', 'Peach Tree']
 S50 = ['bacardi razz', 'honingwijn']
 SCORES = {}
 BESTELLINGEN = {}
@@ -36,8 +36,8 @@ class Example(Frame):
             SCORES[g] = 0.0
 
         self.initUI()
-        self.MAP_CONS = self.create_random_mapping_consumptions()
-        self.MAP_S50 = self.create_random_mapping_s50()
+        self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
+        self.MAP_S50 = self.create_random_mapping(S50)
         self.update_scores_test()
         #self.update_scores()
 
@@ -205,6 +205,8 @@ class Example(Frame):
                 score = self.calculate_extra_score(self.normalize_orders(orders_Chaos), self.normalize_orders(random_orders))
                 SCORES[g] += score
 
+        print(SCORES)
+
         # Keep running this function every 10 seconds.
         self.after(10000, self.update_scores)
 
@@ -212,7 +214,22 @@ class Example(Frame):
         print("Update")
         print(SCORES)
         SCORES['Krat'] += 1.0
-        self.after(1000, self.update_scores_test)
+        self.check_if_maps_need_updating()
+        print(self.LATEST_CHECK_MINUTES)
+        (i, j) = self.create_random_mappings()
+        print(i)
+        print(j)
+        self.MAP_CONS = i
+        self.MAP_S50 = j
+        o = self.get_null_order()
+        o['Bier'] = 5
+        o['Fris'] = 3
+        o['Pul Fris'] = 1
+        print(o)
+        o2 = self.randomize_orders(o)
+        print('Test for randomization of orders...')
+        print(o2)
+        self.after(15000, self.update_scores_test)
         
 
 def main():
