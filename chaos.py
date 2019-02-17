@@ -70,31 +70,6 @@ class Example(Frame):
 
         return orders
 
-    def normalize_orders(self, order):
-        res = {}
-        sum = 0
-        for n, v in order.items():
-            sum += v
-        if sum == 0:
-            return order
-        for n, v in order.items():
-            res[n] = float(v)/float(sum)
-
-        # Pad order. Add a quantity of 0 for every item not yet in
-        # the normalized order that is defined in CONSUMPTIES, S50 or just beer.
-        for n in CONSUMPTIES:
-            if not(n in res):
-                res[n] = 0
-
-        for n in S50:
-            if not(n in res):
-                res[n] = 0
-
-        if not('Bier' in res):
-            res['Bier'] = 0
-
-        return res
-
     def compare_old_and_new_orders(self, old, new):
         changed = False
         new_order = {}
@@ -122,7 +97,7 @@ class Example(Frame):
     def calculate_extra_score(self, orders_Chaos, orders_other):
         score = 0
         for name, val in orders_Chaos.items():
-            score += min(val, orders_other[name])
+            score += min(val, orders_other.get(name, 0))
         return score
 
     # These two functions are for the creation of random mappings. Consumptions are mapped to consumptions
@@ -199,10 +174,11 @@ class Example(Frame):
             (changed, new_orders) = self.compare_old_and_new_orders(g_orders_old, g_orders_new)
             # If a new order has been placed by a group, update the score of that group.
             if changed:
+                # Update the amount of ordered things.
+                BESTELLINGEN[g] = g_orders_new
                 # Randomize the new order of that group, and then compare it with what Chaos has ordered.
                 random_orders = self.randomize_orders(new_orders)
-                # score = self.chi_square_sim(self.normalize_orders(orders_Chaos), self.normalize_orders(random_orders))
-                score = self.calculate_extra_score(self.normalize_orders(orders_Chaos), self.normalize_orders(random_orders))
+                score = self.calculate_extra_score(orders_Chaos, random_orders)
                 SCORES[g] += score
 
         print(SCORES)
@@ -211,14 +187,12 @@ class Example(Frame):
         self.after(10000, self.update_scores)
 
     def update_scores_test(self):
-        print("Update")
-        print(SCORES)
+        #print("Update")
+        #print(SCORES)
         SCORES['Krat'] += 1.0
-        self.check_if_maps_need_updating()
-        print(self.LATEST_CHECK_MINUTES)
         (i, j) = self.create_random_mappings()
-        print(i)
-        print(j)
+        #print(i)
+        #print(j)
         self.MAP_CONS = i
         self.MAP_S50 = j
         o = self.get_null_order()
@@ -229,7 +203,14 @@ class Example(Frame):
         o2 = self.randomize_orders(o)
         print('Test for randomization of orders...')
         print(o2)
-        self.after(15000, self.update_scores_test)
+
+        chaos = self.get_null_order()
+        chaos['Bier'] = 5
+        chaos['Pitcher bier'] = 3
+        chaos['Safari'] = 1
+        score = self.calculate_extra_score(chaos, o2)
+        print(score)
+        self.after(3000, self.update_scores_test)
         
 
 def main():
