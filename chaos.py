@@ -42,7 +42,12 @@ class Example(Frame):
         #self.update_scores()
 
     def get_null_order(self):
-        res = {'Fris': 0, 'Pul Fris': 0, 'Safari': 0, 'Apfelkorn': 0, 'Eristoff': 0, 'Jagermeister': 0, 'Likeur 43': 0, 'Pitcher bier': 0, 'Peach Tree ': 0, 'Bier': 0, 'bacardi razz': 0, 'honingwijn': 0}
+        res = {}
+        res['Bier'] = 0
+        for n in CONSUMPTIES:
+            res[n] = 0
+        for n in S50:
+            res[n] = 0
         return res
 
     def initUI(self):
@@ -68,32 +73,57 @@ class Example(Frame):
     def normalize_orders(self, order):
         res = {}
         sum = 0
-        for n, v in order:
+        for n, v in order.items():
             sum += v
         if sum == 0:
             return order
-        for n, v in order:
+        for n, v in order.items():
             res[n] = float(v)/float(sum)
+
+        # Pad order. Add a quantity of 0 for every item not yet in
+        # the normalized order that is defined in CONSUMPTIES, S50 or just beer.
+        for n in CONSUMPTIES:
+            if not(n in res):
+                res[n] = 0
+
+        for n in S50:
+            if not(n in res):
+                res[n] = 0
+
+        if not('Bier' in res):
+            res['Bier'] = 0
+
         return res
 
     def compare_old_and_new_orders(self, old, new):
         changed = False
         new_order = {}
-        for n, v in old:
-            if v < new[n]:
+        for n, v in new.items():
+            if v > old.get(n, 0):
                 changed = True
-            new_order[n] = new[n] - v
+            new_order[n] = new[n] - old.get(n, 0)
 
         return (changed, new_order)
 
+    # Calculates score of an order based on Chi-square distance with what Chaos has ordered.
+    # This method complicated the scoring procedure so I decided to create a simpler method.
     def chi_square_sim(self, orders_Chaos, orders_other):
         dist = 0
-        for name, val in orders_Chaos:
+        for name, val in orders_Chaos.items():
             if val > 0:
                 dist += (float((val - orders_other[name])**2)/float(val))
 
         # Return 15.0 minus the distance. This is very hacky, but it awards more points for orders very close to us.
         return 15.0 - dist
+
+    # Far simpler way to calculate scores. The score for an order is calculated by
+    # using the function min(the amount of X Chaos has ordered total, the amount of X in the other order),
+    # and then summing that for all items.
+    def calculate_extra_score(self, orders_Chaos, orders_other):
+        score = 0
+        for name, val in orders_Chaos.items():
+            score += min(val, orders_other[name])
+        return score
 
     # These two functions are for the creation of random mappings. Consumptions are mapped to consumptions
     # and S50 is mapped to S50. Beer is not mapped to anything else.
@@ -117,12 +147,18 @@ class Example(Frame):
         res['Bier'] = orders['Bier']
 
         # If an order contains X of item A and item A is mapped to item B, then the randomized order contains X amount of item B.
-        for k, v in self.MAP_CONS:
-            res[v] = orders[k]
+        for k, v in self.MAP_CONS.items():
+            if k in orders:
+                res[v] = orders[k]
+            else:
+                res[v] = 0
 
         # Same, but for S50.
-        for k, v in self.MAP_S50:
-            res[v] = orders[k]
+        for k, v in self.MAP_S50.items():
+            if k in orders:
+                res[v] = orders[k]
+            else:
+                res[v] = 0
 
         return res
 
@@ -165,8 +201,9 @@ class Example(Frame):
             if changed:
                 # Randomize the new order of that group, and then compare it with what Chaos has ordered.
                 random_orders = self.randomize_orders(new_orders)
-                similarity = self.chi_square_sim(self.normalize_orders(orders_Chaos), self.normalize_orders(random_orders))
-                SCORES[g] += similarity
+                # score = self.chi_square_sim(self.normalize_orders(orders_Chaos), self.normalize_orders(random_orders))
+                score = self.calculate_extra_score(self.normalize_orders(orders_Chaos), self.normalize_orders(random_orders))
+                SCORES[g] += score
 
         # Keep running this function every 10 seconds.
         self.after(10000, self.update_scores)
