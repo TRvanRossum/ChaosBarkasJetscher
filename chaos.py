@@ -4,6 +4,7 @@ import datetime
 from barkas import Barkas
 from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 import numpy as np
+import random
 
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
@@ -15,6 +16,7 @@ BESTELLINGEN = {}
 
 class Example(Frame):
 
+    barkas = None
     MAP_CONS = {}
     MAP_S50 = {}
     LATEST_CHECK_MINUTES = 0
@@ -23,17 +25,16 @@ class Example(Frame):
         Frame.__init__(self, parent, background="white")   
          
         self.parent = parent
-        
+
+        for g in GROEPERINGEN:
+            BESTELLINGEN[g] = self.get_null_order()
+            SCORES[g] = 0
 
         self.names = {}
         self.scores = {}
         for i, g in enumerate(GROEPERINGEN):
             self.names[i] = StringVar()
             self.scores[i] = StringVar()
-
-        for g in GROEPERINGEN:
-            BESTELLINGEN[g] = self.get_null_order()
-            SCORES[g] = 0.0
 
         self.initUI()
         self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
@@ -52,11 +53,22 @@ class Example(Frame):
 
     def initUI(self):
         self.parent.title("Scores")
-        w = Label(self, textvariable="Running", font=("Helvetica", 15))
+        for i, g in enumerate(GROEPERINGEN):
+            print(g)
+            w = Label(self, text=str(g), font=("Helvetica", 15))
+            w.place(rely=0.95 * i / float(len(GROEPERINGEN)) + 0.05, relx=0.3, anchor=CENTER)
+            self.names[i].set(g)
 
+            w = Label(self, textvariable=self.scores[i], font=("Helvetica", 15))
+            w.place(rely=0.95 * i / float(len(GROEPERINGEN)) + 0.05, relx=0.6, anchor=CENTER)
+            self.scores[i].set(str(SCORES.get(g, 0)))
+
+        self.pack(fill=BOTH, expand=1)
 
     def get_total_orders_of_group(self, group):
-        self.barkas = Barkas()
+        # Optimize barkas setup.
+        if self.barkas is not None:
+            self.barkas = Barkas()
 
         date = datetime.date.today()
         orders = {}
@@ -153,6 +165,9 @@ class Example(Frame):
         self.LATEST_CHECK_MINUTES = min_mod_30
         return checked
 
+    def update_scores_local(self):
+        for i, g in enumerate(GROEPERINGEN):
+            self.scores[i].set(SCORES.get(g, 0))
 
     def update_scores(self):
         print("Update")
@@ -180,19 +195,13 @@ class Example(Frame):
                 random_orders = self.randomize_orders(new_orders)
                 score = self.calculate_extra_score(orders_Chaos, random_orders)
                 SCORES[g] += score
-
-        print(SCORES)
+        self.update_scores_local()
 
         # Keep running this function every 10 seconds.
         self.after(10000, self.update_scores)
 
     def update_scores_test(self):
-        #print("Update")
-        #print(SCORES)
-        SCORES['Krat'] += 1.0
         (i, j) = self.create_random_mappings()
-        #print(i)
-        #print(j)
         self.MAP_CONS = i
         self.MAP_S50 = j
         o = self.get_null_order()
@@ -209,6 +218,10 @@ class Example(Frame):
         chaos['Pitcher bier'] = 3
         chaos['Safari'] = 1
         score = self.calculate_extra_score(chaos, o2)
+        group = random.choice(GROEPERINGEN)
+        print(group)
+        SCORES[group] += score
+        self.update_scores_local()
         print(score)
         self.after(3000, self.update_scores_test)
         
