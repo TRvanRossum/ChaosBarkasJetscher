@@ -12,6 +12,7 @@ DRANK = "Bier zwembadfeest"
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
 CONSUMPTIES = ['Fris', 'Pul fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Goldstrike', 'Amaretto Disaronno', 'Apfelkorn', 'Jaegermeister', 'Likeur 43', 'De Kuyper Peachtree']
 S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
+multiplier = {}
 SCORES = {}
 BESTELLINGEN = {}
 
@@ -21,6 +22,7 @@ class Example(Frame):
     MAP_CONS = {}
     MAP_S50 = {}
     LATEST_CHECK_MINUTES = 0
+    LATEST_CHECK_MINUTES_MULT = 0
 
     def __init__(self, parent):
         Frame.__init__(self, parent, background="white")   
@@ -40,6 +42,7 @@ class Example(Frame):
         self.initUI()
         self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
         self.MAP_S50 = self.create_random_mapping(S50)
+        self.randomize_multipliers()
         #self.update_scores_test()
         self.update_scores()
 
@@ -147,7 +150,27 @@ class Example(Frame):
 
         return res
 
+    def randomize_multipliers(self):
+        rand_groups = np.random.permutation(GROEPERINGEN)
+        for i in range(3):
+            multiplier[rand_groups[i]] = 3
+        for i in range(3, 8):
+            multiplier[rand_groups[i]] = 2
+        for i in range(8, len(GROEPERINGEN)):
+            multiplier[rand_groups[i]] = 1
 
+    def check_if_update_mults(self):
+        current_time = datetime.datetime.now()
+        current_time_mins = current_time.minute
+
+        # If 10 minutes have passed, the min_mod_100 variable should be less than the previous one.
+        checked = False
+        min_mod_10 = current_time_mins % 10
+        if min_mod_10 < self.LATEST_CHECK_MINUTES_MULT:
+            checked = True
+
+        self.LATEST_CHECK_MINUTES_MULT = min_mod_10
+        return checked
 
     # The random maps need to be re-randomized every 30 minutes. This function checks if 30 minutes have passed already.
     def check_if_maps_need_updating(self):
@@ -175,6 +198,13 @@ class Example(Frame):
             self.MAP_CONS = map_c
             self.MAP_S50 = map_s
 
+        self.randomize_multipliers()
+
+        if self.check_if_update_mults():
+            self.randomize_multipliers()
+
+        print(multiplier)
+
         # Get orders of Chaos
         orders_Chaos = self.get_total_orders_of_group('Chaos')
 
@@ -190,19 +220,19 @@ class Example(Frame):
                 BESTELLINGEN[g] = g_orders_new
                 # Randomize the new order of that group, and then compare it with what Chaos has ordered.
                 random_orders = self.randomize_orders(new_orders)
-                score = self.calculate_extra_score(orders_Chaos, random_orders)
+                score = multiplier[g] * self.calculate_extra_score(orders_Chaos, random_orders)
                 SCORES[g] += score
         print('Scores this iteration:')
         print(SCORES)
 
         try:
             with open('scores.csv', 'w', newline='') as csvfile:
-                fieldnames = ['groep', 'score']
+                fieldnames = ['groep', 'score', 'multiplier']
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
                 writer.writeheader()
                 for g, s in SCORES.items():
-                    writer.writerow({'groep': g, 'score': s})
+                    writer.writerow({'groep': g, 'score': s, 'multiplier': multiplier[g]})
         except:
             print('Updating next iteration...')
 

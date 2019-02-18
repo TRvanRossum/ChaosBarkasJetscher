@@ -1,16 +1,16 @@
-groep,score
-Nobel,4
-Krat,0
-Bestuur 122,6
-Spetter,5
-Quast,0
-Octopus,8
-McClan,0
-Kurk,0
-Apollo,17
-Schranz,0
-Asene,10
-Kielzog,0
-Scorpios,0
-Fabula,0
-TDC 66,17
+groep,score,multiplier
+Nobel,12,1
+Krat,0,3
+Bestuur 122,6,1
+Spetter,10,1
+Quast,0,2
+Octopus,32,1
+McClan,0,2
+Kurk,0,3
+Apollo,18,1
+Schranz,0,2
+Asene,20,1
+Kielzog,0,2
+Scorpios,0,2
+Fabula,0,3
+TDC 66,20,1
