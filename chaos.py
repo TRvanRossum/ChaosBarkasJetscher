@@ -9,7 +9,7 @@ import random
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
-CONSUMPTIES = ['Fris', 'Pul Fris', 'Safari', 'Apfelkorn', 'Eristoff', 'Jagermeister', 'Likeur 43', 'Pitcher bier', 'Peach Tree']
+CONSUMPTIES = ['Fris', 'Pul fris', 'Pitcher fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Apfelkorn', 'Eristoff', 'Jagermeister', 'Likeur 43', 'Peach Tree']
 S50 = ['bacardi razz', 'honingwijn']
 SCORES = {}
 BESTELLINGEN = {}
