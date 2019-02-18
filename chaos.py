@@ -5,12 +5,13 @@ from barkas import Barkas
 from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 import numpy as np
 import random
+import csv
 
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
-CONSUMPTIES = ['Fris', 'Pul fris', 'Pitcher fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Apfelkorn', 'Jagermeister', 'Likeur 43', 'Peach Tree']
-S50 = ['bacardi razz', 'honingwijn']
+CONSUMPTIES = ['Fris', 'Pul fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Goldstrike', 'Amaretto Disaronno', 'Apfelkorn', 'Jaegermeister', 'Likeur 43', 'De Kuyper Peachtree']
+S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 SCORES = {}
 BESTELLINGEN = {}
 
@@ -66,19 +67,16 @@ class Example(Frame):
         self.pack(fill=BOTH, expand=1)
 
     def get_total_orders_of_group(self, group):
-        # Optimize barkas setup.
-        if self.barkas is None:
-            self.barkas = Barkas()
 
         date = datetime.date.today()
         orders = {}
         for name in CONSUMPTIES:
-            orders[name] = self.barkas.get_number_of_consumptions(date, group, name)
+            orders[name] = int(self.barkas.get_number_of_consumptions(date, group, name))
 
         for name in S50:
-            orders[name] = self.barkas.get_number_of_s50(date, group, name)
+            orders[name] = int(self.barkas.get_number_of_s50(date, group, name))
 
-        orders['Bier'] = self.barkas.get_number_of_beers(date, group)
+        orders['Bier'] = int(self.barkas.get_number_of_beers(date, group))
 
         return orders
 
@@ -170,8 +168,7 @@ class Example(Frame):
             self.scores[i].set(SCORES.get(g, 0))
 
     def update_scores(self):
-        print("Update")
-
+        self.barkas = Barkas()
         # Check if randomized maps need updating.
         if self.check_if_maps_need_updating():
             (map_c, map_s) = self.create_random_mappings()
@@ -184,7 +181,6 @@ class Example(Frame):
         # For every group, check if a new order has been made.
         # If so, compare this to what Chaos has ordered.
         for g in GROEPERINGEN:
-            print('Run')
             g_orders_old = BESTELLINGEN[g]
             g_orders_new = self.get_total_orders_of_group(g)
             (changed, new_orders) = self.compare_old_and_new_orders(g_orders_old, g_orders_new)
@@ -196,10 +192,22 @@ class Example(Frame):
                 random_orders = self.randomize_orders(new_orders)
                 score = self.calculate_extra_score(orders_Chaos, random_orders)
                 SCORES[g] += score
-        self.update_scores_local()
+        print('Scores this iteration:')
+        print(SCORES)
+
+        try:
+            with open('scores.csv', 'w', newline='') as csvfile:
+                fieldnames = ['groep', 'score']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+                writer.writeheader()
+                for g, s in SCORES.items():
+                    writer.writerow({'groep': g, 'score': s})
+        except:
+            print('Updating next iteration...')
 
         # Keep running this function every 10 seconds.
-        self.after(10000, self.update_scores)
+        self.after(500, self.update_scores)
 
     def update_scores_test(self):
         (i, j) = self.create_random_mappings()

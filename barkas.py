@@ -40,7 +40,12 @@ class Barkas(object):
 
             # Fuzzy match
             exact_product, certainty = process.extractOne(product, choices)
-            if certainty >= 80:
+            if certainty == 100:
+                product_id = product_name_id[exact_product]
+                self.product_ids[product] = product_id
+                print("Product id found with max certainty:", exact_product, product_id)
+                return product_id
+            elif certainty >= 80:
                 product_id = product_name_id[exact_product]
                 self.product_ids[product] = product_id  
                 print("Product id found (" + str(certainty) + "%):", exact_product, product_id)
@@ -103,7 +108,7 @@ class Barkas(object):
             return aantal
 
     def get_number_of_beers(self, date, debtor):
-        number_of_beers_consumption = [('Pul Bier', 3), ('Pul Bier Korting', 3), ('Meter', 12), ('Bier', 1), ('Pitcher Bier', 2)]
+        number_of_beers_consumption = [('Bier', 1)]
         result = 0
         for consumption, amount in number_of_beers_consumption:
             result += amount * self.get_number_of_consumptions(date, debtor, consumption)
