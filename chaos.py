@@ -9,7 +9,7 @@ import random
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
-CONSUMPTIES = ['Fris', 'Pul fris', 'Pitcher fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Apfelkorn', 'Eristoff', 'Jagermeister', 'Likeur 43', 'Peach Tree']
+CONSUMPTIES = ['Fris', 'Pul fris', 'Pitcher fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Apfelkorn', 'Jagermeister', 'Likeur 43', 'Peach Tree']
 S50 = ['bacardi razz', 'honingwijn']
 SCORES = {}
 BESTELLINGEN = {}
@@ -39,8 +39,8 @@ class Example(Frame):
         self.initUI()
         self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
         self.MAP_S50 = self.create_random_mapping(S50)
-        self.update_scores_test()
-        #self.update_scores()
+        #self.update_scores_test()
+        self.update_scores()
 
     def get_null_order(self):
         res = {}
@@ -67,7 +67,7 @@ class Example(Frame):
 
     def get_total_orders_of_group(self, group):
         # Optimize barkas setup.
-        if self.barkas is not None:
+        if self.barkas is None:
             self.barkas = Barkas()
 
         date = datetime.date.today()
@@ -180,6 +180,8 @@ class Example(Frame):
 
         # Get orders of Chaos
         orders_Chaos = self.get_total_orders_of_group('Chaos')
+        print('Test')
+        print(orders_Chaos)
 
         # For every group, check if a new order has been made.
         # If so, compare this to what Chaos has ordered.
@@ -207,22 +209,30 @@ class Example(Frame):
         o = self.get_null_order()
         o['Bier'] = 5
         o['Fris'] = 3
-        o['Pul Fris'] = 1
-        print(o)
+        o['Pul fris'] = 1
+        #print('Orders')
+        #print(o)
         o2 = self.randomize_orders(o)
-        print('Test for randomization of orders...')
-        print(o2)
+        #print('Orders Randomized')
+        #print(o2)
 
         chaos = self.get_null_order()
         chaos['Bier'] = 5
         chaos['Pitcher bier'] = 3
         chaos['Safari'] = 1
         score = self.calculate_extra_score(chaos, o2)
+        o_new = self.get_null_order()
+        o_new['Bier'] = 8
+        o_new['Fris'] = 4
+        o_new['Pul fris'] = 2
+        (_, b) = self.compare_old_and_new_orders(o, o_new)
+        o_new_2 = self.randomize_orders(b)
+        print(o_new_2)
+        extra_score = self.calculate_extra_score(chaos, o_new_2)
+        print(extra_score)
         group = random.choice(GROEPERINGEN)
-        print(group)
         SCORES[group] += score
         self.update_scores_local()
-        print(score)
         self.after(3000, self.update_scores_test)
         
 
