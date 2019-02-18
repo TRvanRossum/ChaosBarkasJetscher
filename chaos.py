@@ -180,12 +180,11 @@ class Example(Frame):
 
         # Get orders of Chaos
         orders_Chaos = self.get_total_orders_of_group('Chaos')
-        print('Test')
-        print(orders_Chaos)
 
         # For every group, check if a new order has been made.
         # If so, compare this to what Chaos has ordered.
         for g in GROEPERINGEN:
+            print('Run')
             g_orders_old = BESTELLINGEN[g]
             g_orders_new = self.get_total_orders_of_group(g)
             (changed, new_orders) = self.compare_old_and_new_orders(g_orders_old, g_orders_new)
