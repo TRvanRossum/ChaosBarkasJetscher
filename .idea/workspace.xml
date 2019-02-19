@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e2dd9bb7-bc51-4c9c-bc20-e471eec50457" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/recover.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chaos.py" beforeDir="false" afterPath="$PROJECT_DIR$/chaos.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/orders.csv" beforeDir="false" afterPath="$PROJECT_DIR$/orders.csv" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,8 +17,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/chaos.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="254">
-              <caret line="234" column="24" selection-start-line="234" selection-start-column="24" selection-end-line="234" selection-end-column="24" />
+            <state relative-caret-position="306">
+              <caret line="18" column="16" selection-start-line="18" selection-start-column="16" selection-end-line="18" selection-end-column="16" />
               <folding>
                 <element signature="e#46#61#0" expanded="true" />
               </folding>
@@ -108,7 +108,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.recover">
+  <component name="RunManager" selected="Python.chaos">
     <configuration name="akcie" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ChaosBarkasJetscher" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -195,8 +195,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.recover" />
         <item itemvalue="Python.chaos" />
+        <item itemvalue="Python.recover" />
         <item itemvalue="Python.akcie" />
         <item itemvalue="Python.barkas" />
       </list>
@@ -279,8 +279,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/chaos.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="254">
-          <caret line="234" column="24" selection-start-line="234" selection-start-column="24" selection-end-line="234" selection-end-column="24" />
+        <state relative-caret-position="306">
+          <caret line="18" column="16" selection-start-line="18" selection-start-column="16" selection-end-line="18" selection-end-column="16" />
           <folding>
             <element signature="e#46#61#0" expanded="true" />
           </folding>

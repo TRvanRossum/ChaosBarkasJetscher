@@ -16,6 +16,7 @@ S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
 SCORES = {}
 BESTELLINGEN = {}
+recovery = False
 
 class Example(Frame):
 
@@ -48,9 +49,25 @@ class Example(Frame):
         self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
         self.MAP_S50 = self.create_random_mapping(S50)
         self.randomize_multipliers()
+
+        if recovery:
+            self.recover()
+
         #self.update_scores_test()
         self.read_write()
         #self.update_scores()
+
+    def recover(self):
+        print('Recovering from crash...')
+        s, m = self.logger.read_scores_file()
+        for i, j in s.items():
+            SCORES[i] = j
+        for i, j in m.items():
+            multiplier[i] = j
+        b = self.logger.read_orders_file()
+        for i, j in b.items():
+            b[i] = j
+        print('Recovery done.')
 
     def get_null_order(self):
         res = {}
@@ -169,7 +186,7 @@ class Example(Frame):
         current_time = datetime.datetime.now()
         current_time_mins = current_time.minute
 
-        # If 10 minutes have passed, the min_mod_100 variable should be less than the previous one.
+        # If 10 minutes have passed, the min_mod_10 variable should be less than the previous one.
         checked = False
         min_mod_10 = current_time_mins % 10
         if min_mod_10 < self.LATEST_CHECK_MINUTES_MULT:
@@ -275,6 +292,7 @@ class Example(Frame):
         self.after(3000, self.update_scores_test)
 
     def read_write(self):
+        BESTELLINGEN = self.logger.read_orders_file()
         s, m = self.logger.read_scores_file()
         print(s)
         print(m)
@@ -288,7 +306,6 @@ class Example(Frame):
         BESTELLINGEN['Bestuur 122'] = foo
         self.logger.write_orders_file(BESTELLINGEN, CONSUMPTIES, S50)
         print(BESTELLINGEN)
-        print(self.logger.read_orders_file())
 
         
 
