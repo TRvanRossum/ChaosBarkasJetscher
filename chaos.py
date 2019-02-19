@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 from barkas import Barkas
+from logger import Logger
 from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 import numpy as np
 import random
@@ -18,6 +19,7 @@ BESTELLINGEN = {}
 
 class Example(Frame):
 
+
     barkas = None
     MAP_CONS = {}
     MAP_S50 = {}
@@ -26,8 +28,11 @@ class Example(Frame):
 
     def __init__(self, parent):
         Frame.__init__(self, parent, background="white")   
-         
+
+
         self.parent = parent
+
+        self.logger = Logger('scores.csv', 'orders.csv')
 
         for g in GROEPERINGEN:
             BESTELLINGEN[g] = self.get_null_order()
@@ -44,7 +49,8 @@ class Example(Frame):
         self.MAP_S50 = self.create_random_mapping(S50)
         self.randomize_multipliers()
         #self.update_scores_test()
-        self.update_scores()
+        self.read_write()
+        #self.update_scores()
 
     def get_null_order(self):
         res = {}
@@ -272,6 +278,11 @@ class Example(Frame):
         SCORES[group] += score
         self.update_scores_local()
         self.after(3000, self.update_scores_test)
+
+    def read_write(self):
+        res = self.logger.read_scores_file()
+        print(res)
+
         
 
 def main():
