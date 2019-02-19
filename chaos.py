@@ -6,6 +6,8 @@ from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 import numpy as np
 import random
 import csv
+import json
+import urllib.request
 
 DATUM = "2015-11-06"
 DRANK = "Bier zwembadfeest"
@@ -15,6 +17,7 @@ S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
 SCORES = {}
 BESTELLINGEN = {}
+SERVERURL = 'http://borrel.collegechaos.nl:2003'
 
 class Example(Frame):
 
@@ -226,13 +229,8 @@ class Example(Frame):
         print(SCORES)
 
         try:
-            with open('scores.csv', 'w', newline='') as csvfile:
-                fieldnames = ['groep', 'score', 'multiplier']
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-                writer.writeheader()
-                for g, s in SCORES.items():
-                    writer.writerow({'groep': g, 'score': s, 'multiplier': multiplier[g]})
+            scoredump = [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()]
+            urllib.request.urlopen(SERVERURL, json.dumps(scoredump).encode())
         except:
             print('Updating next iteration...')
 
