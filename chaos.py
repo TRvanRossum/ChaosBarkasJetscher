@@ -232,19 +232,14 @@ class Example(Frame):
         print('Orders this iteration:')
         print(BESTELLINGEN)
 
-        try:
-            with open('scores.csv', 'w', newline='') as csvfile:
-                fieldnames = ['groep', 'score', 'multiplier']
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-                writer.writeheader()
-                for g, s in SCORES.items():
-                    writer.writerow({'groep': g, 'score': s, 'multiplier': multiplier[g]})
-        except:
-            print('Updating next iteration...')
+        self.write_all()
 
         # Keep running this function every 10 seconds.
         self.after(500, self.update_scores)
+
+    def write_all(self):
+        self.logger.write_orders_file(BESTELLINGEN, CONSUMPTIES, S50)
+        self.logger.write_scores_file(SCORES, multiplier)
 
     def update_scores_test(self):
         (i, j) = self.create_random_mappings()
