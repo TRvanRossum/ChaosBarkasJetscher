@@ -223,6 +223,8 @@ class Example(Frame):
                 SCORES[g] += score
         print('Scores this iteration:')
         print(SCORES)
+        print('Orders this iteration:')
+        print(BESTELLINGEN)
 
         try:
             with open('scores.csv', 'w', newline='') as csvfile:
