@@ -218,9 +218,8 @@ class Example(Frame):
             if changed:
                 # Update the amount of ordered things.
                 BESTELLINGEN[g] = g_orders_new
-                # Randomize the new order of that group, and then compare it with what Chaos has ordered.
-                random_orders = self.randomize_orders(new_orders)
-                score = multiplier[g] * self.calculate_extra_score(orders_Chaos, random_orders)
+                # Compare the new order with what Chaos has ordered.
+                score = multiplier[g] * self.calculate_extra_score(orders_Chaos, new_orders)
                 SCORES[g] += score
         print('Scores this iteration:')
         print(SCORES)
