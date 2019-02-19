@@ -280,8 +280,20 @@ class Example(Frame):
         self.after(3000, self.update_scores_test)
 
     def read_write(self):
-        res = self.logger.read_scores_file()
-        print(res)
+        s, m = self.logger.read_scores_file()
+        print(s)
+        print(m)
+        self.logger.write_scores_file(s, m)
+        foo = BESTELLINGEN['Nobel']
+        foo['Bier'] += 5
+        BESTELLINGEN['Nobel'] = foo
+
+        foo = BESTELLINGEN['Bestuur 122']
+        foo['Fris'] += 10
+        BESTELLINGEN['Bestuur 122'] = foo
+        self.logger.write_orders_file(BESTELLINGEN, CONSUMPTIES, S50)
+        print(BESTELLINGEN)
+        print(self.logger.read_orders_file())
 
         
 
