@@ -1,0 +1,81 @@
+html, body{
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+}
+body{
+    display: flex;
+    justify-content: space-between;
+    background: black;
+}
+#left-bar,
+#right-bar {
+    padding: 10px;
+    vertical-align: top;
+    background: grey;
+    height: 100%;
+}
+#atom {
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    position: relative;
+    background-image: url('img/chaos.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+#atom-orbit {
+    background: black;
+}
+#inner-orbit {
+    background: dimgrey;
+}
+#middle-orbit {
+    background: grey;
+}
+#outer-orbit {
+    background: lightgrey;
+}
+#atom-orbit {
+    width: 65%;
+    height: 65%;
+    top: 17.5%;
+    left: 17.5%;
+}
+#middle-orbit,
+#outer-orbit {
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+}
+.orbit {
+    border-radius: 50%;
+    position: relative;
+    width: 75%;
+    height: 75%;
+    top: 12.5%;
+    left: 12.5%;
+    box-shadow: 0px 0px 4px 6px;
+}
+#atom-container {
+    vertical-align: top;
+    width: 100vh;
+    height: 100vh;
+    background: black;
+}
+@media(orientation: portrait) {
+    body{
+        flex-direction: column;
+    }
+    #atom-container{
+        width: 100vw;
+        height: 100vw;
+    }
+    #left-bar,
+    #right-bar {
+        width: 100%;
+    }
+}
