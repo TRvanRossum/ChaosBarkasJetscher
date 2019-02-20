@@ -2,8 +2,14 @@
 
 import http.server
 import json
+import ssl
+import sys
 
-SERVERNAME = ('borrel.collegechaos.nl', 2003)
+SERVERNAME = 'borrel.collegechaos.nl'
+PORTPLAIN = 1897
+PORTSSL = 2003
+CERTFILE = 'fullchain.pem'
+KEYFILE = 'privkey.pem'
 
 class ChaosRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -28,6 +34,15 @@ class ChaosRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
 if __name__ == "__main__":
-    server = http.server.HTTPServer(SERVERNAME, ChaosRequestHandler)
+    if "--http" in sys.argv:
+        server = http.server.HTTPServer((SERVERNAME, PORTPLAIN), ChaosRequestHandler)
+    else:
+        server = http.server.HTTPServer((SERVERNAME, PORTSSL), ChaosRequestHandler)
+        server.socket = ssl.wrap_socket(
+            server.socket,
+            server_side=True,
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+            ssl_version=ssl.PROTOCOL_TLSv1_2)
     server.scoredump = None
     server.serve_forever()
