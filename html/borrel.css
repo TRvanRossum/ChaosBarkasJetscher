@@ -14,6 +14,8 @@ body{
     vertical-align: top;
     background: grey;
     height: 100%;
+    flex-basis: 10%;
+    flex-grow: 0;
 }
 #atom {
     top: 5%;
@@ -65,6 +67,65 @@ body{
     width: 100vh;
     height: 100vh;
     background: black;
+}
+.electron {
+    border-radius: 50%;
+    width: 10%;
+    height: 10%;
+    background-color: rgba(0, 0, 0, .5);
+    text-align: center;
+    vertical-align: middle;
+}
+.electron-location {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+.electron-loc1 {
+    margin-top: -20%;
+    animation: rot 2s infinite linear;
+}
+.electron-loc2 {
+    margin-top: -30%;
+    animation: rot 4s infinite linear;
+}
+.electron-loc3 {
+    margin-top: -35%;
+    animation: rot 8s infinite linear;
+}
+#electron11 {
+    animation-delay: 0s;
+}
+#electron12 {
+    animation-delay: -1s;
+}
+#electron21 {
+    animation-delay: 0s;
+}
+#electron22 {
+    animation-delay: -0.5s;
+}
+#electron31 {
+    animation-delay: 0s;
+}
+#electron32 {
+    animation-delay: 1s;
+}
+
+@keyframes rot {
+    from {
+        transform:  rotate(0deg)
+                    translate(42%)
+                    rotate(0deg);
+    }
+    to {
+        transform:  rotate(360deg)
+                    translate(42%)
+                    rotate(-360deg);
+    }
 }
 @media(orientation: portrait) {
     body{
