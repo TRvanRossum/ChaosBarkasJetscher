@@ -229,8 +229,10 @@ class Example(Frame):
         print(SCORES)
 
         try:
-            scoredump = [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()]
-            urllib.request.urlopen(SERVERURL, json.dumps(scoredump).encode())
+            senddata = {
+                'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()],
+            }
+            urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
         except:
             print('Updating next iteration...')
 
