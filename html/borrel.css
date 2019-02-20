@@ -7,6 +7,7 @@ body{
     display: flex;
     justify-content: space-between;
     background: black;
+    overflow: hidden;
 }
 #left-bar,
 #right-bar {
@@ -119,7 +120,7 @@ body{
     animation-delay: 0s;
 }
 #electron32 {
-    animation-delay: 1s;
+    animation-delay: -1s;
 }
 
 @keyframes rot {
