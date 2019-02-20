@@ -19,7 +19,7 @@ function handleUpdate(request){
     if(parsed.scores != undefined){
         var sortedScores = parsed.scores;
         sortedScores.sort(function(left,right){
-            return left.score > right.score;
+            return right.score - left.score;
         });
         var trs = sortedScores.map(function(element){
             var group = document.createElement('td');
@@ -37,6 +37,39 @@ function handleUpdate(request){
         trs.forEach(function(tr){
             document.querySelector('#scores tbody').appendChild(tr);
         });
+
+        // Start uber-hacky
+        // We will replace this. This is too hacky
+        sortedScores = parsed.scores;
+        sortedScores.sort(function(left, right){
+            return right.multiplier - left.multiplier;
+        });
+        console.log(sortedScores);
+        var shell = 1;
+        var electron = 1;
+        sortedScores.forEach(function(score){
+            document.querySelector('#electron'+shell+electron+' .electron').setAttribute('style', 'background-image: url("img/'+score.group+'.png");');
+
+            electron += 1;
+            if((shell == 1 && electron > 2) || electron > 8){
+                shell += 1;
+                electron = 1;
+            }
+        });
+        // end uber-hacky
+    }
+    if(parsed.electrons != undefined){
+        var shellsizes = parsed.electrons.shellsizes;
+        if(document.querySelector('.electron-loc2') != shellsizes[1]){
+            // Remove excess
+            // Add new
+            // Trim animation offset
+        }
+        if(document.querySelector('.electron-loc3') != shellsizes[2]){
+            // Remove excess
+            // Add new
+            // Trim animation offset
+        }
     }
 }
 
