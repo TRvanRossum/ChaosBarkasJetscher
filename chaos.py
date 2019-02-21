@@ -35,8 +35,6 @@ class Chaos:
         self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
         self.MAP_S50 = self.create_random_mapping(S50)
         self.randomize_multipliers()
-        #self.update_scores_test()
-        self.update_scores()
 
     def get_null_order(self):
         res = {}
