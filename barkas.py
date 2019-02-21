@@ -1,6 +1,7 @@
 import random
 import datetime
 import pymysql.cursors
+import time
 from fuzzywuzzy import process
 
 class Barkas(object):
@@ -14,7 +15,12 @@ class Barkas(object):
 
         self.prijslijst_version = self.get_prijslijst_version()
         self.product_ids = {}
+        self.product_names = {}
+        self.bon_debtor = {}
         self.debtor_ids = {}
+        self.debtor_names = {}
+        self.day_to_bon_ids_next_update = datetime.datetime.now()
+        self.day_to_bon_ids = {}
 
     def get_prijslijst_version(self):
         with self.connection.cursor() as cursor:
@@ -55,6 +61,16 @@ class Barkas(object):
 
         return self.product_ids[product]
 
+    def get_product_name(self, product_id):
+        if product_id not in self.product_names:
+            with self.connection.cursor() as cursor:
+                sql = "SELECT Prijs_Naam FROM prijs WHERE Prijs_Versie = %d AND Prijs_ID = %d" % (self.prijslijst_version, product_id, )
+                corsor.execute(sql)
+                result = cursor.fetchone()
+                if result:
+                    self.debtor_names[debtor_id] = result['Prijs_Naam'].strip()
+        return self.product_names[product_id]
+
     def find_debtor_id(self, debtor):
         if debtor not in self.debtor_ids:
             with self.connection.cursor() as cursor:
@@ -76,6 +92,26 @@ class Barkas(object):
                 raise RuntimeError("Debtor not found")
 
         return self.debtor_ids[debtor]
+
+    def get_debtor_name(self, debtor_id):
+        if debtor_id not in self.debtor_names:
+            with self.connection.cursor() as cursor:
+                sql = "SELECT Debiteur_Naam FROM debiteur WHERE Debiteur_Actief = 1 AND Debiteur_ID = %d" % (debtor_id, )
+                corsor.execute(sql)
+                result = cursor.fetchone()
+                if result:
+                    self.debtor_names[debtor_id] = result['Debiteur_Naam'].strip()
+        return self.debtor_names[debtor_id]
+
+    def get_bon_debtor(self, bon_id):
+        if bon_id not in self.bon_debtors:
+            with self.connection.cursor() as cursor:
+                sql = "SELECT Bon_Debiteur From bon WHERE Bon_ID = %d" % (bon_id, )
+                cursor.execute(sql)
+                result = cursor.fetchone()
+                if result:
+                    self.bon_debtor[bon_id] = int(result['Bon_Debiteur'])
+        return self.bon_debtor[bon_id]
 
     def get_number_of_consumptions(self, date, debtor, consumption_name):
         """Returns the number of consumption for a debtor on a specific date"""
@@ -117,16 +153,54 @@ class Barkas(object):
 
     def get_todays_orders_since(self, ts_from):
         return self.get_orders_of_day_since( (datetime.datetime.now() - datetime.timedelta(hours = 12)).date(), ts_from )
-    def get_orders_of_day_since(self, date_bon, ts_from):
-        with self.connection.cursor() as cursor:
-            sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = '%s'" % ( date_bon.isoformat(), )
-            cursor.execute(sql)
-            bon_ids = [int(row['Bon_Id']) for row in cursor.fetchall()]
+    def get_orders_of_day_since(self, date_bon, ts_from, limit=None):
+        bon_ids = self.get_bon_ids_of_day(date_bon)
         with self.connection.cursor() as cursor:
             sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %d ORDER BY Bestelling_Time ASC" % ( tuple(bon_ids), ts_from, )
+            if limit is not None:
+                sql += " LIMIT %d" % ( limit, )
             cursor.execute(sql)
             bestellingen = cursor.fetchall()
         return bestellingen
+
+    def get_orders_of_day_stream(self, date_bon):
+        batch_size = 10
+        str_lead = 'Bestelling_Aantal'
+
+        last_time = 0
+        while True:
+            batch = self.get_orders_of_day(date_bon, last_time, limit=batch_size)
+            if not batch:
+                time.sleep(1)
+                continue
+            for order in batch:
+                last_time = int(order['Bestelling_Time'])
+                debtor_id = self.get_bon_debtor(order['Bestelling_Bon'])
+                product_id = order['Bestelling_Wat']
+                debtor_name = self.get_debtor_name(debtor_id)
+                product_name = self.get_product_name(product_id)
+                used_aantal = [(k[len(str_lead):], v) for k,v in order.items() if k.startswith(str_lead) and v > 0]
+                active_type, amount = used_aantal[0]
+                yield {
+                    'timestamp' : last_time,
+                    'group'     : debtor_name,
+                    'product'   : product_name,
+                    'type'      : active_type,
+                    'amount'    : amount,
+                }
+
+    # New bonnen will be opened during the day, but cache for short periods
+    def get_bon_ids_of_day(self, date_bon):
+        if self.date_to_bon_ids_next_update <= datetime.datetime.now():
+            self.date_to_bon_ids = {}
+        if date_bon not in self.date_to_bon_ids:
+            with self.connection.cursor() as cursor:
+                sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = '%s'" % ( date_bon.isoformat(), )
+                cursor.execute(sql)
+                bon_ids = [int(row['Bon_Id']) for row in cursor.fetchall()]
+                self.date_to_bon_ids[date_bon] = bon_ids
+                self.date_to_bon_ids_next_update = datetime.datetime.now() + datetime.timedelta(minutes=1)
+        return self.date_to_bon_ids[date_bon]
 
 if __name__ == '__main__':
     b = Barkas()
