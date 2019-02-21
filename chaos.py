@@ -193,7 +193,6 @@ class Example(Frame):
             self.scores[i].set(SCORES.get(g, 0))
 
     def update_scores(self):
-        self.barkas = Barkas()
         # Check if randomized maps need updating.
         if self.check_if_maps_need_updating():
             (map_c, map_s) = self.create_random_mappings()

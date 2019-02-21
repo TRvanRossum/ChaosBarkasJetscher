@@ -11,6 +11,7 @@ class Barkas(object):
                                           password='lezen',
                                           db='barkas_1_0_prod',
                                           charset='utf8mb4',
+                                          autocommit=True,
                                           cursorclass=pymysql.cursors.DictCursor)
 
         self.prijslijst_version = self.get_prijslijst_version()
