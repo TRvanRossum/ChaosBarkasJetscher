@@ -78,8 +78,8 @@ body{
 }
 .electron {
     border-radius: 50%;
-    width: 10%;
-    height: 10%;
+    width: 5vh;
+    height: 5vh;
     background-color: rgba(0, 0, 0, .5);
     text-align: center;
     vertical-align: middle;
@@ -96,15 +96,15 @@ body{
 }
 .electron-loc1 {
     margin-top: -20%;
-    animation: rot 2s infinite linear;
+    animation: rot1 2s infinite linear;
 }
 .electron-loc2 {
-    margin-top: -30%;
-    animation: rot 4s infinite linear;
+    margin-top: -28%;
+    animation: rot2 4s infinite linear;
 }
 .electron-loc3 {
-    margin-top: -35%;
-    animation: rot 8s infinite linear;
+    margin-top: -33%;
+    animation: rot3 8s infinite linear;
 }
 #electron11 {
     animation-delay: 0s;
@@ -125,7 +125,7 @@ body{
     animation-delay: -1s;
 }
 
-@keyframes rot {
+@keyframes rot1 {
     from {
         transform:  rotate(0deg)
                     translate(42%)
@@ -134,6 +134,30 @@ body{
     to {
         transform:  rotate(360deg)
                     translate(42%)
+                    rotate(-360deg);
+    }
+}
+@keyframes rot2 {
+    from {
+        transform:  rotate(0deg)
+                    translate(44%)
+                    rotate(0deg);
+    }
+    to {
+        transform:  rotate(360deg)
+                    translate(44%)
+                    rotate(-360deg);
+    }
+}
+@keyframes rot3 {
+    from {
+        transform:  rotate(0deg)
+                    translate(45.5%)
+                    rotate(0deg);
+    }
+    to {
+        transform:  rotate(360deg)
+                    translate(45.5%)
                     rotate(-360deg);
     }
 }
@@ -148,5 +172,9 @@ body{
     #left-bar,
     #right-bar {
         width: 100%;
+    }
+    .electron {
+        width: 5vw;
+        height: 5vw;
     }
 }
