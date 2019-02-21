@@ -9,8 +9,7 @@ import csv
 import json
 import urllib.request
 
-DATUM = "2015-11-06"
-DRANK = "Bier zwembadfeest"
+DATUM = datetime.date(2019,2,25)
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
 CONSUMPTIES = ['Fris', 'Pul fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Goldstrike', 'Amaretto Disaronno', 'Apfelkorn', 'Jaegermeister', 'Likeur 43', 'De Kuyper Peachtree']
 S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
