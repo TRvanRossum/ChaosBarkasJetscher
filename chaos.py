@@ -171,7 +171,6 @@ class Example(Frame):
         min_mod_10 = current_time_mins % 10
         if min_mod_10 < self.LATEST_CHECK_MINUTES_MULT:
             checked = True
-
         self.LATEST_CHECK_MINUTES_MULT = min_mod_10
         return checked
 
@@ -201,8 +200,6 @@ class Example(Frame):
             self.MAP_CONS = map_c
             self.MAP_S50 = map_s
 
-        self.randomize_multipliers()
-
         if self.check_if_update_mults():
             self.randomize_multipliers()
 
@@ -229,10 +226,13 @@ class Example(Frame):
         print('Orders this iteration:')
         print(BESTELLINGEN)
 
-        senddata = {
-            'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()]
-        }
-        urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
+        try:
+            senddata = {
+                'scores': [{'group': g, 'score': s, 'multiplier': multiplier[g]} for g, s in SCORES.items()],
+            }
+            urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
+        except:
+            print('Updating next iteration...')
 
         # Keep running this function every 10 seconds.
         self.after(500, self.update_scores)
