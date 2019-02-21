@@ -17,7 +17,7 @@ S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
 SCORES = {}
 BESTELLINGEN = {}
-SERVERURL = 'http://borrel.collegechaos.nl:2003'
+SERVERURL = 'http://borrel.collegechaos.nl'
 
 class Example(Frame):
 
@@ -222,11 +222,12 @@ class Example(Frame):
                 # Update the amount of ordered things.
                 BESTELLINGEN[g] = g_orders_new
                 # Randomize the new order of that group, and then compare it with what Chaos has ordered.
-                random_orders = self.randomize_orders(new_orders)
-                score = multiplier[g] * self.calculate_extra_score(orders_Chaos, random_orders)
+                score = multiplier[g] * self.calculate_extra_score(orders_Chaos, new_orders)
                 SCORES[g] += score
         print('Scores this iteration:')
         print(SCORES)
+        print('Orders this iteration:')
+        print(BESTELLINGEN)
 
         try:
             senddata = {
