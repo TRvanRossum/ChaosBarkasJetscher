@@ -75,7 +75,7 @@ function handleUpdate(request){
 
 function loadScores(){
     var req = new XMLHttpRequest();
-    req.open('GET', 'https://borrel.collegechaos.nl', true);
+    req.open('GET', 'https://borrel.collegechaos.nl:2003', true);
     req.onreadystatechange = function(){
         handleUpdate(req);
     }

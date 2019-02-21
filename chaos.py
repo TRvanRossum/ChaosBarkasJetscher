@@ -17,7 +17,7 @@ S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
 SCORES = {}
 BESTELLINGEN = {}
-SERVERURL = 'http://borrel.collegechaos.nl'
+SERVERURL = 'http://borrel.collegechaos.nl:2003'
 
 class Example(Frame):
 
