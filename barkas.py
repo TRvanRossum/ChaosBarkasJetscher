@@ -116,8 +116,10 @@ class Barkas(object):
         return result
 
     def get_todays_orders_since(self, ts_from):
+        return self.get_orders_of_day_since( (datetime.datetime.now() - datetime.timedelta(hours = 12)).date(), ts_from )
+    def get_orders_of_day_since(self, date_bon, ts_from):
         with self.connection.cursor() as cursor:
-            sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = '%s'" % ( (datetime.datetime.now() - datetime.timedelta(hours = 12)).date().isoformat(), )
+            sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = '%s'" % ( date_bon.isoformat(), )
             cursor.execute(sql)
             bon_ids = [int(row['Bon_Id']) for row in cursor.fetchall()]
         with self.connection.cursor() as cursor:
