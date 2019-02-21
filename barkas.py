@@ -115,7 +115,16 @@ class Barkas(object):
 
         return result
 
-
+    def get_todays_orders_since(self, ts_from):
+        with self.connection.cursor() as cursor:
+            sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = '%s'" % ( (datetime.datetime.now() - datetime.timedelta(hours = 12)).date().isoformat(), )
+            cursor.execute(sql)
+            bon_ids = [int(row['Bon_Id']) for row in cursor.fetchall()]
+        with self.connection.cursor() as cursor:
+            sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %d ORDER BY Bestelling_Time ASC" % ( tuple(bon_ids), ts_from, )
+            cursor.execute(sql)
+            bestellingen = cursor.fetchall()
+        return bestellingen
 
 if __name__ == '__main__':
     b = Barkas()
@@ -123,3 +132,4 @@ if __name__ == '__main__':
     print(b.get_number_of_s50(datetime.date.today(), 'Chaos', 'Apfelkorn'))
     print(b.get_number_of_consumptions(datetime.date(2015, 11, 26), 'Bestuur 119', 'Pul Bier'))
     print(b.get_number_of_beers(datetime.date(2015, 11, 26), 'Bestuur 119'))
+    print(b.get_number_of_beers(datetime.date.today(), 'Chaos'))
