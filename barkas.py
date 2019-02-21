@@ -32,8 +32,8 @@ class Barkas(object):
     def find_product_id(self, product):
         if product not in self.product_ids:
             with self.connection.cursor() as cursor:
-                sql = "SELECT * FROM prijs WHERE Prijs_Versie = " + str(self.prijslijst_version)
-                cursor.execute(sql)
+                sql = "SELECT * FROM prijs WHERE Prijs_Versie = %d"
+                cursor.execute(sql, (self.prijslijst_version, ) )
                 result = cursor.fetchall()
                 
                 if result:
@@ -64,8 +64,8 @@ class Barkas(object):
     def get_product_name(self, product_id):
         if product_id not in self.product_names:
             with self.connection.cursor() as cursor:
-                sql = "SELECT Prijs_Naam FROM prijs WHERE Prijs_Versie = %d AND Prijs_ID = %d" % (self.prijslijst_version, product_id, )
-                corsor.execute(sql)
+                sql = "SELECT Prijs_Naam FROM prijs WHERE Prijs_Versie = %d AND Prijs_ID = %d"
+                corsor.execute(sql, (self.prijslijst_version, product_id, ) )
                 result = cursor.fetchone()
                 if result:
                     self.debtor_names[debtor_id] = result['Prijs_Naam'].strip()
@@ -96,8 +96,8 @@ class Barkas(object):
     def get_debtor_name(self, debtor_id):
         if debtor_id not in self.debtor_names:
             with self.connection.cursor() as cursor:
-                sql = "SELECT Debiteur_Naam FROM debiteur WHERE Debiteur_Actief = 1 AND Debiteur_ID = %d" % (debtor_id, )
-                corsor.execute(sql)
+                sql = "SELECT Debiteur_Naam FROM debiteur WHERE Debiteur_Actief = 1 AND Debiteur_ID = %d"
+                corsor.execute(sql, (debtor_id, ))
                 result = cursor.fetchone()
                 if result:
                     self.debtor_names[debtor_id] = result['Debiteur_Naam'].strip()
@@ -106,8 +106,8 @@ class Barkas(object):
     def get_bon_debtor(self, bon_id):
         if bon_id not in self.bon_debtors:
             with self.connection.cursor() as cursor:
-                sql = "SELECT Bon_Debiteur From bon WHERE Bon_ID = %d" % (bon_id, )
-                cursor.execute(sql)
+                sql = "SELECT Bon_Debiteur From bon WHERE Bon_ID = %d"
+                cursor.execute(sql, (bon_id, ))
                 result = cursor.fetchone()
                 if result:
                     self.bon_debtor[bon_id] = int(result['Bon_Debiteur'])
@@ -119,8 +119,8 @@ class Barkas(object):
         product_id = self.find_product_id(consumption_name)
         debtor_id = self.find_debtor_id(debtor)
         with self.connection.cursor() as cursor:
-            sql = "SELECT SUM(Bestelling_AantalS) AS aantalS FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %d AND Bon_Datum = '%s') AND Bestelling_Wat = %d" % (debtor_id, date.isoformat(), product_id)
-            cursor.execute(sql)
+            sql = "SELECT SUM(Bestelling_AantalS) AS aantalS FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %d AND Bon_Datum = %s) AND Bestelling_Wat = %d"
+            cursor.execute(sql, (debtor_id, date.isoformat(), product_id, ))
             result = cursor.fetchone()
 
             aantal = result['aantalS']
@@ -134,8 +134,8 @@ class Barkas(object):
         product_id = self.find_product_id(consumption_name)
         debtor_id = self.find_debtor_id(debtor)
         with self.connection.cursor() as cursor:
-            sql = "SELECT SUM(Bestelling_AantalS50) AS aantalS50 FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %d AND Bon_Datum = '%s') AND Bestelling_Wat = %d" % (debtor_id, date.isoformat(), product_id)
-            cursor.execute(sql)
+            sql = "SELECT SUM(Bestelling_AantalS50) AS aantalS50 FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %d AND Bon_Datum = %s) AND Bestelling_Wat = %d"
+            cursor.execute(sql, (debtor_id, date.isoformat(), product_id, ))
             result = cursor.fetchone()
 
             aantal = result['aantalS50']
@@ -156,10 +156,12 @@ class Barkas(object):
     def get_orders_of_day_since(self, date_bon, ts_from, limit=None):
         bon_ids = self.get_bon_ids_of_day(date_bon)
         with self.connection.cursor() as cursor:
-            sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %d ORDER BY Bestelling_Time ASC" % ( tuple(bon_ids), ts_from, )
+            sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %d ORDER BY Bestelling_Time ASC"
+            args = ( tuple(bon_ids), ts_from, )
             if limit is not None:
-                sql += " LIMIT %d" % ( limit, )
-            cursor.execute(sql)
+                sql += " LIMIT %d"
+                args += ( limit, )
+            cursor.execute(sql, args)
             bestellingen = cursor.fetchall()
         return bestellingen
 
@@ -195,8 +197,8 @@ class Barkas(object):
             self.date_to_bon_ids = {}
         if date_bon not in self.date_to_bon_ids:
             with self.connection.cursor() as cursor:
-                sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = '%s'" % ( date_bon.isoformat(), )
-                cursor.execute(sql)
+                sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = %s"
+                cursor.execute(sql, ( date_bon.isoformat(), ))
                 bon_ids = [int(row['Bon_Id']) for row in cursor.fetchall()]
                 self.date_to_bon_ids[date_bon] = bon_ids
                 self.date_to_bon_ids_next_update = datetime.datetime.now() + datetime.timedelta(minutes=1)
