@@ -17,7 +17,7 @@ S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
 SCORES = {}
 BESTELLINGEN = {}
-SERVERURL = 'http://borrel.collegechaos.nl:2003'
+SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
 class Example(Frame):
 
@@ -229,13 +229,10 @@ class Example(Frame):
         print('Orders this iteration:')
         print(BESTELLINGEN)
 
-        try:
-            senddata = {
-                'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()],
-            }
-            urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
-        except:
-            print('Updating next iteration...')
+        senddata = {
+            'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()]
+        }
+        urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
 
         # Keep running this function every 10 seconds.
         self.after(500, self.update_scores)
