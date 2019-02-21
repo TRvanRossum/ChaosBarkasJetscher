@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import datetime
 from barkas import Barkas
-from tkinter import Tk, Frame, BOTH, Label, StringVar, CENTER
 import numpy as np
 import random
 import csv
 import json
+import time
 import urllib.request
 
 DATUM = "2015-11-06"
@@ -19,7 +19,7 @@ SCORES = {}
 BESTELLINGEN = {}
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
-class Example(Frame):
+class Chaos:
 
     barkas = None
     MAP_CONS = {}
@@ -27,22 +27,11 @@ class Example(Frame):
     LATEST_CHECK_MINUTES = 0
     LATEST_CHECK_MINUTES_MULT = 0
 
-    def __init__(self, parent):
-        Frame.__init__(self, parent, background="white")   
-         
-        self.parent = parent
-
+    def __init__(self):
         for g in GROEPERINGEN:
             BESTELLINGEN[g] = self.get_null_order()
             SCORES[g] = 0
 
-        self.names = {}
-        self.scores = {}
-        for i, g in enumerate(GROEPERINGEN):
-            self.names[i] = StringVar()
-            self.scores[i] = StringVar()
-
-        self.initUI()
         self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
         self.MAP_S50 = self.create_random_mapping(S50)
         self.randomize_multipliers()
@@ -57,20 +46,6 @@ class Example(Frame):
         for n in S50:
             res[n] = 0
         return res
-
-    def initUI(self):
-        self.parent.title("Scores")
-        for i, g in enumerate(GROEPERINGEN):
-            print(g)
-            w = Label(self, text=str(g), font=("Helvetica", 15))
-            w.place(rely=0.95 * i / float(len(GROEPERINGEN)) + 0.05, relx=0.3, anchor=CENTER)
-            self.names[i].set(g)
-
-            w = Label(self, textvariable=self.scores[i], font=("Helvetica", 15))
-            w.place(rely=0.95 * i / float(len(GROEPERINGEN)) + 0.05, relx=0.6, anchor=CENTER)
-            self.scores[i].set(str(SCORES.get(g, 0)))
-
-        self.pack(fill=BOTH, expand=1)
 
     def get_total_orders_of_group(self, group):
 
@@ -189,10 +164,6 @@ class Example(Frame):
         self.LATEST_CHECK_MINUTES = min_mod_30
         return checked
 
-    def update_scores_local(self):
-        for i, g in enumerate(GROEPERINGEN):
-            self.scores[i].set(SCORES.get(g, 0))
-
     def update_scores(self):
         self.barkas = Barkas()
         # Check if randomized maps need updating.
@@ -236,9 +207,6 @@ class Example(Frame):
         except:
             print('Updating next iteration...')
 
-        # Keep running this function every 10 seconds.
-        self.after(500, self.update_scores)
-
     def update_scores_test(self):
         (i, j) = self.create_random_mappings()
         self.MAP_CONS = i
@@ -269,21 +237,23 @@ class Example(Frame):
         print(extra_score)
         group = random.choice(GROEPERINGEN)
         SCORES[group] += score
-        self.update_scores_local()
-        self.after(3000, self.update_scores_test)
-        
+
+    def mainloop(self):
+        next_update = 0
+        next_update_test = 0
+        while True:
+            if next_update <= time.time():
+                self.update_scores()
+                next_update = time.time() + .5
+            if next_update_test <= time.time():
+                self.update_scores_test()
+                next_update_test = time.time() + 3
+            time.sleep(max(0, min(next_update, next_update_test) - time.time()))
 
 def main():
-  
-    root = Tk()
-    root.geometry("800x500")
     print('Running')
-    app = Example(root)
-    root.mainloop()  
-
-
-    #     time.sleep(1)
-
+    app = Chaos()
+    app.mainloop()
 
 
 if __name__ == '__main__':
