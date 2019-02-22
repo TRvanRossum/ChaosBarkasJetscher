@@ -65,6 +65,9 @@ body{
     width: 90%;
     height: 90%;
 }
+#scores .score {
+    text-align: right;
+}
 .orbit {
     border-radius: 50%;
     position: relative;

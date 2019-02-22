@@ -23,8 +23,10 @@ function handleUpdate(request){
         });
         var trs = sortedScores.map(function(element){
             var group = document.createElement('td');
+            group.setAttribute('class', 'group');
             group.innerText = element.group;
             var score = document.createElement('td');
+            score.setAttribute('class', 'score');
             score.innerText = element.score;
             var newTr = document.createElement('tr');
             newTr.appendChild(group);
