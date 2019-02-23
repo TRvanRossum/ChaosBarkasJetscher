@@ -51,7 +51,6 @@ class Barkas(object):
                 product_id = product_name_id[exact_product]
                 self.product_ids[product] = product_id
                 print("Product id found with max certainty:", exact_product, product_id)
-                return product_id
             elif certainty >= 80:
                 product_id = product_name_id[exact_product]
                 self.product_ids[product] = product_id  
