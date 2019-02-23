@@ -16,7 +16,6 @@ GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', '
 CONSUMPTIES = ['Fris', 'Pul fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Goldstrike', 'Amaretto Disaronno', 'Apfelkorn', 'Jaegermeister', 'Likeur 43', 'De Kuyper Peachtree']
 S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
-SCORES = {}
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
 #map from chaos to others
@@ -32,6 +31,7 @@ class Chaos:
     def __init__(self):
         self.randomize_multipliers()
         self.chaos_orders = []
+        self.scores = {}
 
     def randomize_multipliers(self):
         rand_groups = np.random.permutation(GROEPERINGEN)
@@ -64,8 +64,8 @@ class Chaos:
 
         if group not in GROEPERINGEN:
             return
-        if group not in SCORES:
-            SCORES[group] = 0
+        if group not in self.scores:
+            self.scores[group] = 0
 
         for c_order in self.chaos_orders:
             ts_diff_ms = new_order['timestamp'] - c_order['timestamp']
@@ -74,12 +74,12 @@ class Chaos:
             if self.product_matches(new_order['product'], c_order['product']):
                 # TODO: product value multiplier
                 # TODO: time difference multiplier
-                SCORES[group] += round(10 * multiplier[group] * self.calc_amount_score(new_order['amount'], c_order['amount']))
+                self.scores[group] += round(10 * multiplier[group] * self.calc_amount_score(new_order['amount'], c_order['amount']))
 
     def send_current_state(self):
         try:
             senddata = {
-                'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()],
+                'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in self.scores.items()],
             }
             urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
         except Exception as e:
@@ -121,7 +121,7 @@ class Chaos:
                     print("Chaos order {}x {}".format(order['amount'], order['product']))
                 elif order['group'] in GROEPERINGEN:
                     self.update_score(order)
-                    print("Score updated for {} to {} for ordering {}x {}".format(order['group'], SCORES[order['group']], order['amount'], order['product']))
+                    print("Score updated for {} to {} for ordering {}x {}".format(order['group'], self.scores[order['group']], order['amount'], order['product']))
                 else:
                     print("Ignoring {}".format(order['group']))
 
@@ -129,7 +129,7 @@ class Chaos:
                 self.send_current_state()
                 last_send = time.time()
                 next_send = time.time() + 5
-                print("sent scores: {}".format(SCORES))
+                print("sent scores: {}".format(self.scores))
 
             if next_trim <= time.time():
                 self.trim_chaos_orders(order_timestamp - 1800)
