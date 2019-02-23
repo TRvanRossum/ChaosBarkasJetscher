@@ -168,14 +168,9 @@ class BarkasProducer(threading.Thread):
     def run(self):
         stream = self.barkas.get_orders_of_day_stream(self.date_bon)
         print("Producer started")
-        num = 0
         t = time.time()
         while self.running:
             self.out_queue.put(next(stream))
-            num += 1
-            if num % 10 == 0 and num / 10 > time.time() - t:
-                time.sleep(5)
-                t = time.time()
         print("Producer stopping")
 
 def main():
