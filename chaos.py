@@ -33,6 +33,7 @@ PRODUCT_VALUE = {
     'Fris'                  : 1,
     '      Pul fris'        : 3,
 }
+MAX_SECONDS_BETWEEN_ORDERS = 1800
 
 class Chaos:
     LATEST_CHECK_MINUTES = 0
@@ -79,7 +80,7 @@ class Chaos:
 
         for c_order in self.chaos_orders:
             ts_diff_ms = new_order['timestamp'] - c_order['timestamp']
-            if ts_diff_ms / 1000 > 1800:
+            if ts_diff_ms / 1000 > MAX_SECONDS_BETWEEN_ORDERS:
                 continue
             if self.product_matches(new_order['product'], c_order['product']):
                 # TODO: time difference multiplier
@@ -146,7 +147,7 @@ class Chaos:
                 print("sent scores: {}".format(self.scores))
 
             if next_trim <= time.time():
-                self.trim_chaos_orders(order_timestamp - 1800)
+                self.trim_chaos_orders(order_timestamp - MAX_SECONDS_BETWEEN_ORDERS)
                 next_trim = time.time() + 300
 
             earliest_event = min((next_send, ))
