@@ -4,10 +4,12 @@ import datetime
 from barkas import Barkas
 import numpy as np
 import random
-import csv
 import json
+import math
+import threading
 import time
 import urllib.request
+import queue
 
 DATUM = datetime.date(2019,2,25)
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
@@ -15,58 +17,24 @@ CONSUMPTIES = ['Fris', 'Pul fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Goldst
 S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
 SCORES = {}
-BESTELLINGEN = {}
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
+#map from chaos to others
+PRODUCT_MAP = {
+    'Bier'          : 'Bier',
+    #'Pul bier'      :
+}
+
 class Chaos:
-    MAP_CONS = {}
-    MAP_S50 = {}
     LATEST_CHECK_MINUTES = 0
     LATEST_CHECK_MINUTES_MULT = 0
 
     def __init__(self):
-        self.barkas = Barkas()
-
         for g in GROEPERINGEN:
-            BESTELLINGEN[g] = self.get_null_order()
             SCORES[g] = 0
 
-        self.MAP_CONS = self.create_random_mapping(CONSUMPTIES)
-        self.MAP_S50 = self.create_random_mapping(S50)
         self.randomize_multipliers()
-
-    def get_null_order(self):
-        res = {}
-        res['Bier'] = 0
-        for n in CONSUMPTIES:
-            res[n] = 0
-        for n in S50:
-            res[n] = 0
-        return res
-
-    def get_total_orders_of_group(self, group):
-
-        date = datetime.date.today()
-        orders = {}
-        for name in CONSUMPTIES:
-            orders[name] = int(self.barkas.get_number_of_consumptions(date, group, name))
-
-        for name in S50:
-            orders[name] = int(self.barkas.get_number_of_s50(date, group, name))
-
-        orders['Bier'] = int(self.barkas.get_number_of_beers(date, group))
-
-        return orders
-
-    def compare_old_and_new_orders(self, old, new):
-        changed = False
-        new_order = {}
-        for n, v in new.items():
-            if v > old.get(n, 0):
-                changed = True
-            new_order[n] = new[n] - old.get(n, 0)
-
-        return (changed, new_order)
+        self.chaos_orders = []
 
     # Calculates score of an order based on Chi-square distance with what Chaos has ordered.
     # This method complicated the scoring procedure so I decided to create a simpler method.
@@ -87,43 +55,6 @@ class Chaos:
         for name, val in orders_Chaos.items():
             score += min(val, orders_other.get(name, 0))
         return score
-
-    # These two functions are for the creation of random mappings. Consumptions are mapped to consumptions
-    # and S50 is mapped to S50. Beer is not mapped to anything else.
-    def create_random_mappings(self):
-        map_cons = self.create_random_mapping(CONSUMPTIES)
-        map_s50 = self.create_random_mapping(S50)
-        return (map_cons, map_s50)
-
-    def create_random_mapping(self, input):
-        map_from = input
-        map_to = np.random.permutation(map_from)
-        res = {}
-        for i in range(len(map_from)):
-            res[map_from[i]] = map_to[i]
-        return res
-
-    def randomize_orders(self, orders):
-        res = {}
-
-        # Do not remap beer.
-        res['Bier'] = orders['Bier']
-
-        # If an order contains X of item A and item A is mapped to item B, then the randomized order contains X amount of item B.
-        for k, v in self.MAP_CONS.items():
-            if k in orders:
-                res[v] = orders[k]
-            else:
-                res[v] = 0
-
-        # Same, but for S50.
-        for k, v in self.MAP_S50.items():
-            if k in orders:
-                res[v] = orders[k]
-            else:
-                res[v] = 0
-
-        return res
 
     def randomize_multipliers(self):
         rand_groups = np.random.permutation(GROEPERINGEN)
@@ -147,110 +78,120 @@ class Chaos:
         self.LATEST_CHECK_MINUTES_MULT = min_mod_10
         return checked
 
-    # The random maps need to be re-randomized every 30 minutes. This function checks if 30 minutes have passed already.
-    def check_if_maps_need_updating(self):
-        current_time = datetime.datetime.now()
-        current_time_mins = current_time.minute
-
-        # If 30 minutes have passed, the min_mod_30 variable should be less than the previous one.
-        checked = False
-        min_mod_30 = current_time_mins % 30
-        if min_mod_30 < self.LATEST_CHECK_MINUTES:
-            checked = True
-
-        self.LATEST_CHECK_MINUTES = min_mod_30
-        return checked
-
-    def update_scores(self):
-        # Check if randomized maps need updating.
-        if self.check_if_maps_need_updating():
-            (map_c, map_s) = self.create_random_mappings()
-            self.MAP_CONS = map_c
-            self.MAP_S50 = map_s
-
-        self.randomize_multipliers()
-
+    def update_score(self, new_order):
         if self.check_if_update_mults():
             self.randomize_multipliers()
+            print(multiplier)
 
-        print(multiplier)
+        group = new_order['group']
 
-        # Get orders of Chaos
-        orders_Chaos = self.get_total_orders_of_group('Chaos')
+        #if g not in SCORES:
+        #    SCORES[g] = 0
 
-        # For every group, check if a new order has been made.
-        # If so, compare this to what Chaos has ordered.
-        for g in GROEPERINGEN:
-            g_orders_old = BESTELLINGEN[g]
-            g_orders_new = self.get_total_orders_of_group(g)
-            (changed, new_orders) = self.compare_old_and_new_orders(g_orders_old, g_orders_new)
-            # If a new order has been placed by a group, update the score of that group.
-            if changed:
-                # Update the amount of ordered things.
-                BESTELLINGEN[g] = g_orders_new
-                # Randomize the new order of that group, and then compare it with what Chaos has ordered.
-                random_orders = self.randomize_orders(new_orders)
-                score = multiplier[g] * self.calculate_extra_score(orders_Chaos, random_orders)
-                SCORES[g] += score
-        print('Scores this iteration:')
-        print(SCORES)
+        for c_order in self.chaos_orders:
+            ts_diff_ms = new_order['timestamp'] - c_order['timestamp']
+            if ts_diff_ms / 1000 > 1800:
+                continue
+            if self.product_matches(new_order['product'], c_order['product']):
+                # TODO: product value multiplier
+                SCORES[group] += round(10 * multiplier[group] * self.calc_amount_score(new_order['amount'], c_order['amount']))
 
+    def send_current_state(self):
         try:
             senddata = {
                 'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in SCORES.items()],
             }
             urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
+        except Exception as e:
+            print('Failed to update server because {}'.format(e))
+
+    def trim_chaos_orders(self):
+        self.chaos_orders = [order for order in self.chaos_orders if (order['timestamp'] / 1000) + 1800 < time.time()]
+
+    def product_matches(self, group_product, chaos_product):
+        try:
+            return PRODUCT_MAP[chaos_product] == group_product
         except:
-            print('Updating next iteration...')
+            return False
 
-    def update_scores_test(self):
-        (i, j) = self.create_random_mappings()
-        self.MAP_CONS = i
-        self.MAP_S50 = j
-        o = self.get_null_order()
-        o['Bier'] = 5
-        o['Fris'] = 3
-        o['Pul fris'] = 1
-        #print('Orders')
-        #print(o)
-        o2 = self.randomize_orders(o)
-        #print('Orders Randomized')
-        #print(o2)
+    def calc_amount_score(self, group_amount, chaos_amount):
+        return math.log(1 + group_amount) * math.log(1 + chaos_amount)
 
-        chaos = self.get_null_order()
-        chaos['Bier'] = 5
-        chaos['Pitcher bier'] = 3
-        chaos['Safari'] = 1
-        score = self.calculate_extra_score(chaos, o2)
-        o_new = self.get_null_order()
-        o_new['Bier'] = 8
-        o_new['Fris'] = 4
-        o_new['Pul fris'] = 2
-        (_, b) = self.compare_old_and_new_orders(o, o_new)
-        o_new_2 = self.randomize_orders(b)
-        print(o_new_2)
-        extra_score = self.calculate_extra_score(chaos, o_new_2)
-        print(extra_score)
-        group = random.choice(GROEPERINGEN)
-        SCORES[group] += score
-
-    def mainloop(self):
-        next_update = 0
-        next_update_test = 0
+    def mainloop(self, in_queue):
+        next_send = 0
+        next_trim = 0
+        order = None
+        order_timestamp = 0
         while True:
-            if next_update <= time.time():
-                self.update_scores()
-                next_update = time.time() + .5
-            if next_update_test <= time.time():
-                self.update_scores_test()
-                next_update_test = time.time() + 3
-            time.sleep(max(0, min(next_update, next_update_test) - time.time()))
+            try:
+                order = in_queue.get_nowait()
+                new_order = True
+                order_timestamp = order['timestamp'] / 1000
+                #print("Found new order")
+            except queue.Empty:
+                new_order = False
+
+            if new_order:
+                if order['group'] == 'Chaos':
+                    self.chaos_orders.append(order)
+                    print("Chaos order {}x {}".format(order['amount'], order['product']))
+                elif order['group'] in GROEPERINGEN:
+                    self.update_score(order)
+                    print("Score updated for {} to {} for ordering {}x {}".format(order['group'], SCORES[order['group']], order['amount'], order['product']))
+                else:
+                    print("Ignoring {}".format(order['group']))
+
+            if next_send <= time.time() or new_order and in_queue.empty():
+                self.send_current_state()
+                next_send = time.time() + 5
+                print("sent scores: {}".format(SCORES))
+
+            if next_trim <= time.time():
+                self.trim_chaos_orders()
+                next_trim = time.time() + 300
+                print("chaos orders trimmed")
+
+            earliest_event = min((next_send, ))
+            time_to_event = earliest_event - time.time()
+            max_sleep = 5 if not new_order else 0
+            min_sleep = 0
+            time.sleep(max(min_sleep, min(max_sleep, time_to_event)))
+            #print("Iter done")
+
+class BarkasProducer(threading.Thread):
+    def __init__(self, date_bon, out_queue):
+        super(BarkasProducer, self).__init__()
+        print("Producer inited")
+        self.running = True
+        self.barkas = Barkas()
+        self.date_bon = date_bon
+        self.out_queue = out_queue
+    def run(self):
+        stream = self.barkas.get_orders_of_day_stream(self.date_bon)
+        print("Producer started")
+        num = 0
+        t = time.time()
+        while self.running:
+            self.out_queue.put(next(stream))
+            num += 1
+            if num % 10 == 0 and num / 10 > time.time() - t:
+                time.sleep(5)
+                t = time.time()
+        print("Producer stopping")
 
 def main():
     print('Running')
-    app = Chaos()
-    app.mainloop()
+    q = queue.Queue(10)
 
+    barkas_producer = BarkasProducer(DATUM, q)
+    app = Chaos()
+
+    barkas_producer.start()
+    try:
+        app.mainloop(q)
+    finally:
+        barkas_producer.running = False
+        barkas_producer.join()
 
 if __name__ == '__main__':
     main()  
