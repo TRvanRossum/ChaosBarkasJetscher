@@ -19,14 +19,14 @@ BESTELLINGEN = {}
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
 class Chaos:
-
-    barkas = None
     MAP_CONS = {}
     MAP_S50 = {}
     LATEST_CHECK_MINUTES = 0
     LATEST_CHECK_MINUTES_MULT = 0
 
     def __init__(self):
+        self.barkas = Barkas()
+
         for g in GROEPERINGEN:
             BESTELLINGEN[g] = self.get_null_order()
             SCORES[g] = 0
