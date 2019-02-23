@@ -33,7 +33,7 @@ class Barkas(object):
     def find_product_id(self, product):
         if product not in self.product_ids:
             with self.connection.cursor() as cursor:
-                sql = "SELECT * FROM prijs WHERE Prijs_Versie = %d"
+                sql = "SELECT * FROM prijs WHERE Prijs_Versie = %s"
                 cursor.execute(sql, (self.prijslijst_version, ) )
                 result = cursor.fetchall()
                 
@@ -65,7 +65,7 @@ class Barkas(object):
     def get_product_name(self, product_id):
         if product_id not in self.product_names:
             with self.connection.cursor() as cursor:
-                sql = "SELECT Prijs_Naam FROM prijs WHERE Prijs_Versie = %d AND Prijs_ID = %d"
+                sql = "SELECT Prijs_Naam FROM prijs WHERE Prijs_Versie = %s AND Prijs_ID = %s"
                 corsor.execute(sql, (self.prijslijst_version, product_id, ) )
                 result = cursor.fetchone()
                 if result:
@@ -97,7 +97,7 @@ class Barkas(object):
     def get_debtor_name(self, debtor_id):
         if debtor_id not in self.debtor_names:
             with self.connection.cursor() as cursor:
-                sql = "SELECT Debiteur_Naam FROM debiteur WHERE Debiteur_Actief = 1 AND Debiteur_ID = %d"
+                sql = "SELECT Debiteur_Naam FROM debiteur WHERE Debiteur_Actief = 1 AND Debiteur_ID = %s"
                 corsor.execute(sql, (debtor_id, ))
                 result = cursor.fetchone()
                 if result:
@@ -107,7 +107,7 @@ class Barkas(object):
     def get_bon_debtor(self, bon_id):
         if bon_id not in self.bon_debtors:
             with self.connection.cursor() as cursor:
-                sql = "SELECT Bon_Debiteur From bon WHERE Bon_ID = %d"
+                sql = "SELECT Bon_Debiteur From bon WHERE Bon_ID = %s"
                 cursor.execute(sql, (bon_id, ))
                 result = cursor.fetchone()
                 if result:
@@ -120,7 +120,7 @@ class Barkas(object):
         product_id = self.find_product_id(consumption_name)
         debtor_id = self.find_debtor_id(debtor)
         with self.connection.cursor() as cursor:
-            sql = "SELECT SUM(Bestelling_AantalS) AS aantalS FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %d AND Bon_Datum = %s) AND Bestelling_Wat = %d"
+            sql = "SELECT SUM(Bestelling_AantalS) AS aantalS FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %s AND Bon_Datum = %s) AND Bestelling_Wat = %s"
             cursor.execute(sql, (debtor_id, date.isoformat(), product_id, ))
             result = cursor.fetchone()
 
@@ -135,7 +135,7 @@ class Barkas(object):
         product_id = self.find_product_id(consumption_name)
         debtor_id = self.find_debtor_id(debtor)
         with self.connection.cursor() as cursor:
-            sql = "SELECT SUM(Bestelling_AantalS50) AS aantalS50 FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %d AND Bon_Datum = %s) AND Bestelling_Wat = %d"
+            sql = "SELECT SUM(Bestelling_AantalS50) AS aantalS50 FROM `bestelling` WHERE Bestelling_Bon IN (SELECT Bon_ID from bon WHERE Bon_Debiteur = %s AND Bon_Datum = %s) AND Bestelling_Wat = %s"
             cursor.execute(sql, (debtor_id, date.isoformat(), product_id, ))
             result = cursor.fetchone()
 
@@ -157,10 +157,10 @@ class Barkas(object):
     def get_orders_of_day_since(self, date_bon, ts_from, limit=None):
         bon_ids = self.get_bon_ids_of_day(date_bon)
         with self.connection.cursor() as cursor:
-            sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %d ORDER BY Bestelling_Time ASC"
+            sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %s ORDER BY Bestelling_Time ASC"
             args = ( tuple(bon_ids), ts_from, )
             if limit is not None:
-                sql += " LIMIT %d"
+                sql += " LIMIT %s"
                 args += ( limit, )
             cursor.execute(sql, args)
             bestellingen = cursor.fetchall()
