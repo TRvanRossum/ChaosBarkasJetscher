@@ -30,9 +30,6 @@ class Chaos:
     LATEST_CHECK_MINUTES_MULT = 0
 
     def __init__(self):
-        for g in GROEPERINGEN:
-            SCORES[g] = 0
-
         self.randomize_multipliers()
         self.chaos_orders = []
 
@@ -65,8 +62,10 @@ class Chaos:
 
         group = new_order['group']
 
-        #if g not in SCORES:
-        #    SCORES[g] = 0
+        if group not in GROEPERINGEN:
+            return
+        if group not in SCORES:
+            SCORES[group] = 0
 
         for c_order in self.chaos_orders:
             ts_diff_ms = new_order['timestamp'] - c_order['timestamp']
