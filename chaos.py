@@ -13,15 +13,25 @@ import queue
 
 DATUM = datetime.date(2019,2,25)
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
-CONSUMPTIES = ['Fris', 'Pul fris', 'Pul bier', 'Pitcher bier', 'Safari', 'Goldstrike', 'Amaretto Disaronno', 'Apfelkorn', 'Jaegermeister', 'Likeur 43', 'De Kuyper Peachtree']
-S50 = ['Rum Bacardi Razz', 'Mede honingwijn']
 multiplier = {}
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
 #map from chaos to others
 PRODUCT_MAP = {
-    'Bier'          : 'Bier',
-    #'Pul bier'      :
+    'Bier'                  : 'Bier',
+    'Fris'                  : 'Fris',
+}
+MAP_FOLD = {
+    '       Pul bier'       : 'Bier',
+    ' Pul bier met korting' : 'Bier',
+    '      Pul fris'        : 'Fris',
+}
+PRODUCT_VALUE = {
+    'Bier'                  : 1,
+    '       Pul bier'       : 3,
+    ' Pul bier met korting' : 3,
+    'Fris'                  : 1,
+    '      Pul fris'        : 3,
 }
 
 class Chaos:
@@ -72,9 +82,8 @@ class Chaos:
             if ts_diff_ms / 1000 > 1800:
                 continue
             if self.product_matches(new_order['product'], c_order['product']):
-                # TODO: product value multiplier
                 # TODO: time difference multiplier
-                self.scores[group] += round(10 * multiplier[group] * self.calc_amount_score(new_order['amount'], c_order['amount']))
+                self.scores[group] += round(10 * multiplier[group] * PRODUCT_VALUE[new_order['product']] * self.calc_amount_score(new_order['amount'], c_order['amount']))
 
     def send_current_state(self):
         try:
@@ -92,10 +101,15 @@ class Chaos:
         print("Trimmed {}/{} chaos orders".format(pre_len - post_len, pre_len))
 
     def product_matches(self, group_product, chaos_product):
-        try:
+        if group_product in MAP_FOLD:
+            group_product = MAP_FOLD[group_product]
+        if chaos_product in MAP_FOLD:
+            chaos_product = MAP_FOLD[chaos_product]
+
+        if chaos_product in PRODUCT_MAP:
             return PRODUCT_MAP[chaos_product] == group_product
-        except:
-            return False
+
+        return False
 
     def calc_amount_score(self, group_amount, chaos_amount):
         return math.log(1 + group_amount) * math.log(1 + chaos_amount)
