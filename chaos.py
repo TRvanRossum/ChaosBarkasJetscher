@@ -105,8 +105,11 @@ class Chaos:
         except Exception as e:
             print('Failed to update server because {}'.format(e))
 
-    def trim_chaos_orders(self):
-        self.chaos_orders = [order for order in self.chaos_orders if (order['timestamp'] / 1000) + 1800 < time.time()]
+    def trim_chaos_orders(self, trim_to):
+        pre_len = len(self.chaos_orders)
+        self.chaos_orders = [order for order in self.chaos_orders if (order['timestamp'] / 1000) >= trim_to]
+        post_len = len(self.chaos_orders)
+        print("Trimmed {}/{} chaos orders".format(pre_len - post_len, pre_len))
 
     def product_matches(self, group_product, chaos_product):
         try:
@@ -147,9 +150,8 @@ class Chaos:
                 print("sent scores: {}".format(SCORES))
 
             if next_trim <= time.time():
-                self.trim_chaos_orders()
+                self.trim_chaos_orders(order_timestamp - 1800)
                 next_trim = time.time() + 300
-                print("chaos orders trimmed")
 
             earliest_event = min((next_send, ))
             time_to_event = earliest_event - time.time()
