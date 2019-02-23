@@ -17,11 +17,11 @@ class Barkas(object):
         self.prijslijst_version = self.get_prijslijst_version()
         self.product_ids = {}
         self.product_names = {}
-        self.bon_debtor = {}
+        self.bon_debtors = {}
         self.debtor_ids = {}
         self.debtor_names = {}
-        self.day_to_bon_ids_next_update = datetime.datetime.now()
-        self.day_to_bon_ids = {}
+        self.date_to_bon_ids_next_update = datetime.datetime.now()
+        self.date_to_bon_ids = {}
 
     def get_prijslijst_version(self):
         with self.connection.cursor() as cursor:
@@ -65,10 +65,10 @@ class Barkas(object):
         if product_id not in self.product_names:
             with self.connection.cursor() as cursor:
                 sql = "SELECT Prijs_Naam FROM prijs WHERE Prijs_Versie = %s AND Prijs_ID = %s"
-                corsor.execute(sql, (self.prijslijst_version, product_id, ) )
+                cursor.execute(sql, (self.prijslijst_version, product_id, ) )
                 result = cursor.fetchone()
                 if result:
-                    self.debtor_names[debtor_id] = result['Prijs_Naam'].strip()
+                    self.product_names[product_id] = result['Prijs_Naam'].strip()
         return self.product_names[product_id]
 
     def find_debtor_id(self, debtor):
@@ -97,7 +97,7 @@ class Barkas(object):
         if debtor_id not in self.debtor_names:
             with self.connection.cursor() as cursor:
                 sql = "SELECT Debiteur_Naam FROM debiteur WHERE Debiteur_Actief = 1 AND Debiteur_ID = %s"
-                corsor.execute(sql, (debtor_id, ))
+                cursor.execute(sql, (debtor_id, ))
                 result = cursor.fetchone()
                 if result:
                     self.debtor_names[debtor_id] = result['Debiteur_Naam'].strip()
@@ -110,8 +110,8 @@ class Barkas(object):
                 cursor.execute(sql, (bon_id, ))
                 result = cursor.fetchone()
                 if result:
-                    self.bon_debtor[bon_id] = int(result['Bon_Debiteur'])
-        return self.bon_debtor[bon_id]
+                    self.bon_debtors[bon_id] = int(result['Bon_Debiteur'])
+        return self.bon_debtors[bon_id]
 
     def get_number_of_consumptions(self, date, debtor, consumption_name):
         """Returns the number of consumption for a debtor on a specific date"""
@@ -171,7 +171,7 @@ class Barkas(object):
 
         last_time = 0
         while True:
-            batch = self.get_orders_of_day(date_bon, last_time, limit=batch_size)
+            batch = self.get_orders_of_day_since(date_bon, last_time, limit=batch_size)
             if not batch:
                 time.sleep(1)
                 continue
