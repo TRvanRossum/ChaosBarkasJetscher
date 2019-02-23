@@ -36,26 +36,6 @@ class Chaos:
         self.randomize_multipliers()
         self.chaos_orders = []
 
-    # Calculates score of an order based on Chi-square distance with what Chaos has ordered.
-    # This method complicated the scoring procedure so I decided to create a simpler method.
-    def chi_square_sim(self, orders_Chaos, orders_other):
-        dist = 0
-        for name, val in orders_Chaos.items():
-            if val > 0:
-                dist += (float((val - orders_other[name])**2)/float(val))
-
-        # Return 15.0 minus the distance. This is very hacky, but it awards more points for orders very close to us.
-        return 15.0 - dist
-
-    # Far simpler way to calculate scores. The score for an order is calculated by
-    # using the function min(the amount of X Chaos has ordered total, the amount of X in the other order),
-    # and then summing that for all items.
-    def calculate_extra_score(self, orders_Chaos, orders_other):
-        score = 0
-        for name, val in orders_Chaos.items():
-            score += min(val, orders_other.get(name, 0))
-        return score
-
     def randomize_multipliers(self):
         rand_groups = np.random.permutation(GROEPERINGEN)
         for i in range(3):
@@ -94,6 +74,7 @@ class Chaos:
                 continue
             if self.product_matches(new_order['product'], c_order['product']):
                 # TODO: product value multiplier
+                # TODO: time difference multiplier
                 SCORES[group] += round(10 * multiplier[group] * self.calc_amount_score(new_order['amount'], c_order['amount']))
 
     def send_current_state(self):
