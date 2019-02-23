@@ -102,6 +102,7 @@ class Chaos:
         return math.log(1 + group_amount) * math.log(1 + chaos_amount)
 
     def mainloop(self, in_queue):
+        last_send = 0
         next_send = 0
         next_trim = 0
         order = None
@@ -125,8 +126,9 @@ class Chaos:
                 else:
                     print("Ignoring {}".format(order['group']))
 
-            if next_send <= time.time() or new_order and in_queue.empty():
+            if next_send <= time.time() or (new_order and in_queue.empty() and last_send + 1 <= time.time()):
                 self.send_current_state()
+                last_send = time.time()
                 next_send = time.time() + 5
                 print("sent scores: {}".format(SCORES))
 
