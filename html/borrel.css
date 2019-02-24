@@ -99,33 +99,33 @@ body{
 }
 .electron-loc1 {
     margin-top: -20%;
-    animation: rot1 2s infinite linear;
+    animation: rot1 4s infinite linear;
 }
 .electron-loc2 {
     margin-top: -28%;
-    animation: rot2 4s infinite linear;
+    animation: rot2 8s infinite linear;
 }
 .electron-loc3 {
     margin-top: -33%;
-    animation: rot3 8s infinite linear;
+    animation: rot3 16s infinite linear;
 }
 #electron11 {
     animation-delay: 0s;
 }
 #electron12 {
-    animation-delay: -1s;
+    animation-delay: -2s;
 }
 #electron21 {
     animation-delay: 0s;
 }
 #electron22 {
-    animation-delay: -0.5s;
+    animation-delay: -1s;
 }
 #electron31 {
     animation-delay: 0s;
 }
 #electron32 {
-    animation-delay: -1s;
+    animation-delay: -2s;
 }
 
 @keyframes rot1 {
@@ -179,5 +179,15 @@ body{
     .electron {
         width: 5vw;
         height: 5vw;
+    }
+    #scores thead,
+    #scores tbody,
+    #scores tr {
+        display: block;
+        float: left;
+    }
+    #scores th,
+    #scores td {
+        display: block;
     }
 }
