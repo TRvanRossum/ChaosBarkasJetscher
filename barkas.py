@@ -155,6 +155,8 @@ class Barkas(object):
         return self.get_orders_of_day_since( (datetime.datetime.now() - datetime.timedelta(hours = 12)).date(), ts_from )
     def get_orders_of_day_since(self, date_bon, ts_from, limit=None):
         bon_ids = self.get_bon_ids_of_day(date_bon)
+        if not bon_ids:
+            return []
         with self.connection.cursor() as cursor:
             sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %s ORDER BY Bestelling_Time ASC"
             args = ( tuple(bon_ids), ts_from, )
