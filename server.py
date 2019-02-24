@@ -2,6 +2,7 @@
 
 import http.server
 import json
+import socketserver
 import ssl
 import sys
 
@@ -39,11 +40,14 @@ class ChaosRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(204)
         self.end_headers()
 
+class ThreadedServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    pass
+
 if __name__ == "__main__":
     if "--http" in sys.argv:
-        server = http.server.HTTPServer((SERVERNAME, PORTPLAIN), ChaosRequestHandler)
+        server = ThreadedServer((SERVERNAME, PORTPLAIN), ChaosRequestHandler)
     else:
-        server = http.server.HTTPServer((SERVERNAME, PORTSSL), ChaosRequestHandler)
+        server = ThreadedServer((SERVERNAME, PORTSSL), ChaosRequestHandler)
         server.socket = ssl.wrap_socket(
             server.socket,
             server_side=True,
