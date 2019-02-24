@@ -2,18 +2,17 @@
 # -*- coding: utf-8 -*-
 import datetime
 from barkas import Barkas
-import numpy as np
-import random
+import hashlib
 import json
 import math
+import queue
+import random
 import threading
 import time
 import urllib.request
-import queue
 
 DATUM = datetime.date(2019,2,25)
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
-multiplier = {}
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
 #map from chaos to others
@@ -33,50 +32,31 @@ PRODUCT_VALUE = {
     'Fris'                  : 1,
     'Pul fris'              : 3,
 }
+SECONDS_BETWEEN_BUMPS = 900
 MAX_SECONDS_BETWEEN_ORDERS = 1800
+DECAY_INTERVAL = 10
 
 class Chaos:
     LATEST_CHECK_MINUTES = 0
     LATEST_CHECK_MINUTES_MULT = 0
 
     def __init__(self):
-        self.randomize_multipliers()
         self.chaos_orders = []
         self.scores = {}
-
-    def randomize_multipliers(self):
-        rand_groups = np.random.permutation(GROEPERINGEN)
-        for i in range(3):
-            multiplier[rand_groups[i]] = 3
-        for i in range(3, 8):
-            multiplier[rand_groups[i]] = 2
-        for i in range(8, len(GROEPERINGEN)):
-            multiplier[rand_groups[i]] = 1
-
-    def check_if_update_mults(self):
-        current_time = datetime.datetime.now()
-        current_time_mins = current_time.minute
-
-        # If 10 minutes have passed, the min_mod_100 variable should be less than the previous one.
-        checked = False
-        min_mod_10 = current_time_mins % 10
-        if min_mod_10 < self.LATEST_CHECK_MINUTES_MULT:
-            checked = True
-
-        self.LATEST_CHECK_MINUTES_MULT = min_mod_10
-        return checked
+        self.electron_shells = [[None, None], [], []]
+        self.next_electron_bump = 0
+        self.next_electron_infall = 0
+        self.multipliers = {}
 
     def update_score(self, new_order):
-        if self.check_if_update_mults():
-            self.randomize_multipliers()
-            print(multiplier)
-
         group = new_order['group']
 
         if group not in GROEPERINGEN:
             return
         if group not in self.scores:
             self.scores[group] = 0
+        if group not in self.multipliers:
+            self.multipliers[group] = 1
 
         for c_order in self.chaos_orders:
             ts_diff_ms = new_order['timestamp'] - c_order['timestamp']
@@ -84,12 +64,13 @@ class Chaos:
                 continue
             if self.product_matches(new_order['product'], c_order['product']):
                 # TODO: time difference multiplier
-                self.scores[group] += round(10 * multiplier[group] * PRODUCT_VALUE[new_order['product']] * self.calc_amount_score(new_order['amount'], c_order['amount']))
+                self.scores[group] += round(10 * self.multipliers[group] * PRODUCT_VALUE[new_order['product']] * self.calc_amount_score(new_order['amount'], c_order['amount']))
 
     def send_current_state(self):
         try:
             senddata = {
-                'scores' : [{'group':g, 'score':s, 'multiplier':multiplier[g]} for g,s in self.scores.items()],
+                'scores' : [{'group':g, 'score':s, 'multiplier':self.multipliers[g]} for g,s in self.scores.items()],
+                'electrons' : self.electron_shells,
             }
             urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
         except Exception as e:
@@ -115,12 +96,113 @@ class Chaos:
     def calc_amount_score(self, group_amount, chaos_amount):
         return math.log(1 + group_amount) * math.log(1 + chaos_amount)
 
+    # The idea is:
+    # Up to 2 groups: (x, 0, 0)
+    # Up to 4 groups: (2, x-2, 0)
+    # Up to 7 groups: (2, x-3, 1)
+    # Up to 12 groups: (2, x-4, 2)
+    # Above: (2, 8, x-10)
+    # However, we do want to have empty spots to kick people up to
+    def maybe_update_orbits(self, order):
+        num_groups = len(self.scores)
+
+        # Maybe expand number of orbits
+        num_orbits = sum(len(shell) for shell in self.electron_shells)
+        if num_groups + 2 >= num_orbits:
+            # Need to expand shells
+            if num_groups > 11:
+                wanted_centers = 8
+            elif num_groups > 4:
+                wanted_centers = num_groups - 2
+            else:
+                wanted_centers = 2
+            while len(self.electron_shells[0]) < 2:
+                self.electron_shells[0].append(None)
+            while len(self.electron_shells[1]) < wanted_centers:
+                self.electron_shells[1].append(None)
+
+            needed_outers = num_groups - len(self.electron_shells[0]) - len(self.electron_shells[1]) + 2
+            wanted_outers = 4*(math.ceil(needed_outers / 4))
+            while len(self.electron_shells[2]) < wanted_outers:
+                self.electron_shells[2].append(None)
+
+        # Drop in group if it did not have a location yet (outermost orbit with spots)
+        if all(order['group'] not in orbit for orbit in self.electron_shells):
+            target_shell = next(ix for ix, orbit in enumerate(self.electron_shells) if any(group is None for group in orbit))
+            empty_spot = next(ix for ix, group in enumerate(self.electron_shells[target_shell]) if group is None)
+            # TODO: message, possibly some notification for display
+            self.electron_shells[target_shell][empty_spot] = order['group']
+
+        # Maybe kick out one of the center ones
+        do_bump = False
+        if self.next_electron_bump <= order['timestamp'] / 1000:
+            do_bump = True
+            self.next_electron_bump = (order['timestamp'] / 1000) + SECONDS_BETWEEN_BUMPS
+        if not do_bump:
+            pass # TODO: Test for "blue shell" orders
+
+        if do_bump:
+            rand = random.Random()
+            rand.seed(order['timestamp'])
+            if self.electron_shells[0][0] is None and self.electron_shells[0][1] is not None:
+                bump_index = 1
+            elif self.electron_shells[0][0] is not None and self.electron_shells[0][1] is None:
+                bump_index = 0
+            elif all(x is None for x in self.electron_shells[0]):
+                return
+            else:
+                bump_index = rand.randint(0,1)
+
+            target_shell = 2 if len(self.electron_shells[2]) > 0 else 1
+            empty_spot = next(ix for ix, group in enumerate(self.electron_shells[target_shell]) if group is None)
+            # TODO: message, possibly some notification for display
+            bumped_group = self.electron_shells[0][bump_index]
+            self.electron_shells[target_shell][empty_spot] = bumped_group
+            self.electron_shells[0][bump_index] = None
+            self.update_multiplier(bumped_group, target_shell)
+
+        return do_bump
+
+    def do_infall(self):
+        empty_shell = next(ix for ix, orbit in enumerate(self.electron_shells) if any(group is None for group in orbit))
+        empty_ix = next(ix for ix, group in enumerate(self.electron_shells[empty_shell]) if group is None)
+        filled_shell = next((empty_shell+1+ix for ix, orbit in enumerate(self.electron_shells[empty_shell+1:]) if any(group is not None for group in orbit)), None)
+
+        # This check should always return true, but let's make sure
+        if filled_shell is not None:
+            candidates = [(ix, group) for ix, group in enumerate(self.electron_shells[filled_shell]) if group is not None]
+            rand = random.Random()
+            # Hashing current config + scores for seed. Hopefully that's deterministic enough
+            hasher = hashlib.sha256()
+            hasher.update(json.dumps(self.electron_shells).encode())
+            hasher.update(json.dumps(self.scores).encode())
+            rand.seed(hasher.digest())
+            #TODO: priority for blue shellers
+            #TODO: weight on scores
+            windex, winner = rand.choices(candidates)
+            self.electron_shells[empty_shell][empty_ix] = winner
+            self.electron_shells[filled_shell][windex] = None
+            self.update_multiplier(winner, empty_shell)
+            # TODO: message, possibly some notification for display
+
+        # Check if there's another empty spot below a shell with electrons
+        empty_shell = next((ix for ix, orbit in enumerate(self.electron_shells) if any(group is None for group in orbit)), None)
+        filled_shell = next((empty_shell+1+ix for ix, orbit in enumerate(self.electron_shells[empty_shell+1:]) if any(group is not None for group in orbit)), None) if empty_shell is not None else None
+
+        # Whether a new infall should be scheduled
+        return empty_shell is not None and filled_shell is not None
+
+    def update_multiplier(self, group, new_shell):
+        self.multiplier[group] = (4 if new_shell == 0 else (2 if new_shell == 1 else 1))
+
     def mainloop(self, in_queue):
         last_send = 0
         next_send = 0
         next_trim = 0
         order = None
         order_timestamp = 0
+        next_infall_order = None
+        next_infall_time = None
         while True:
             try:
                 order = in_queue.get_nowait()
@@ -130,10 +212,28 @@ class Chaos:
             except queue.Empty:
                 new_order = False
 
+            if new_order and self.maybe_update_orbits(order):
+                next_infall_order = order_timestamp + DECAY_INTERVAL
+                next_infall_time = time.time() + DECAY_INTERVAL*2
+
+            # We want to do an infall DECAY_INTERVAL seconds after an empty space is formed.
+            # We would like to make sure all orders in that interval have been processed,
+            # as that would make us deterministic.
+            # Somewhat safe alternative condition: two times the interval has passed in real time?
+            if next_infall_order is not None and (next_infall_order < order_timestamp or next_infall_time < time.time()):
+                if self.do_infall():
+                    # Unsure about determinism here
+                    next_infall_order = order_timestamp + DECAY_INTERVAL
+                    next_infall_time = time.time() + DECAY_INTERVAL*2
+                else:
+                    next_infall_order = None
+                    next_infall_time = None
+
             if new_order:
                 if order['group'] == 'Chaos':
                     self.chaos_orders.append(order)
                     print("Chaos order {}x {}".format(order['amount'], order['product']))
+                    # TODO: send (or queue) message for UI
                 elif order['group'] in GROEPERINGEN:
                     self.update_score(order)
                     print("Score updated for {} to {} for ordering {}x {}".format(order['group'], self.scores[order['group']], order['amount'], order['product']))
