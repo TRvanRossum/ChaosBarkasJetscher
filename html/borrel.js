@@ -82,7 +82,8 @@ function loadScores(){
         handleUpdate(req);
     }
     req.send();
-    //window.setTimeout(loadScores, 1000);
+    window.scrollTo(0,0);
+    window.setTimeout(loadScores, 1000);
 }
 
 document.addEventListener("DOMContentLoaded", function() {
