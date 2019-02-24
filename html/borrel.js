@@ -1,3 +1,17 @@
+function makeElectron(shell, spot, delay_steps){
+    var e_loc = document.createElement('div');
+    e_loc.setAttribute('class', 'electron-location electron-loc'+shell);
+    e_loc.setAttribute('id', 'electron'+shell+spot);
+    var electron = document.createElement('div');
+    electron.setAttribute('class', 'electron');
+    e_loc.appendChild(electron);
+    // Trim animation offset
+    // 1-spot (1,2,3) → (0, -1, -2)
+    e_loc.setAttribute('style', 'animation-delay: '+((1-spot)*delay_steps)+'s;');
+
+    return e_loc;
+}
+
 function handleUpdate(request){
     if(request.readyState != 4)
         return;
@@ -39,38 +53,42 @@ function handleUpdate(request){
         trs.forEach(function(tr){
             document.querySelector('#scores tbody').appendChild(tr);
         });
-
-        // Start uber-hacky
-        // We will replace this. This is too hacky
-        sortedScores = parsed.scores;
-        sortedScores.sort(function(left, right){
-            return right.multiplier - left.multiplier;
-        });
-        console.log(sortedScores);
-        var shell = 1;
-        var electron = 1;
-        sortedScores.forEach(function(score){
-            document.querySelector('#electron'+shell+electron+' .electron').setAttribute('style', 'background-image: url("img/'+score.group+'.png");');
-
-            electron += 1;
-            if((shell == 1 && electron > 2) || electron > 8){
-                shell += 1;
-                electron = 1;
-            }
-        });
-        // end uber-hacky
     }
     if(parsed.electrons != undefined){
-        var shellsizes = parsed.electrons.shellsizes;
-        if(document.querySelector('.electron-loc2') != shellsizes[1]){
-            // Remove excess
+        var electrons = parsed.electrons;
+        var inner = document.getElementById('inner-orbit');
+        var middle = document.getElementById('middle-orbit');
+        var outer = document.getElementById('outer-orbit');
+        if(document.querySelectorAll('.electron-loc2').length != electrons[1].length){
+            // Remove all
+            [].forEach.call(document.querySelectorAll('.electron-loc2'), function(e2){
+                middle.removeChild(e2);
+            });
             // Add new
-            // Trim animation offset
+            for(var i = 0; i < electrons[1].length; i++){
+                middle.appendChild(makeElectron(2, i+1, 8/electrons[1].length));
+            }
         }
-        if(document.querySelector('.electron-loc3') != shellsizes[2]){
-            // Remove excess
+        if(document.querySelectorAll('.electron-loc3').length != electrons[2].length){
+            // Remove all
+            [].forEach.call(document.querySelectorAll('.electron-loc3'), function(e3){
+                outer.removeChild(e3);
+            });
             // Add new
-            // Trim animation offset
+            for(var i = 0; i < electrons[2].length; i++){
+                outer.appendChild(makeElectron(3, i+1, 16/electrons[1].length));
+            }
+        }
+        // Actually replace electrons
+        for(var shell = 0; shell < 3; shell++){
+            for(var spot = 0; spot < electrons[shell].length; spot++){
+                var elec = document.querySelector('#electron'+(shell+1)+(spot+1)+' .electron');
+                if(electrons[shell][spot] == null){
+                    elec.setAttribute('style', '');
+                } else {
+                    elec.setAttribute('style', 'background-color: transparent; background-image: url("img/'+electrons[shell][spot]+'.png");');
+                }
+            }
         }
     }
 }
