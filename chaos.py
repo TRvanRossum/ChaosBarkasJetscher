@@ -22,16 +22,16 @@ PRODUCT_MAP = {
     'Fris'                  : 'Fris',
 }
 MAP_FOLD = {
-    '       Pul bier'       : 'Bier',
-    ' Pul bier met korting' : 'Bier',
-    '      Pul fris'        : 'Fris',
+    'Pul bier'              : 'Bier',
+    'Pul bier met korting'  : 'Bier',
+    'Pul fris'              : 'Fris',
 }
 PRODUCT_VALUE = {
     'Bier'                  : 1,
-    '       Pul bier'       : 3,
-    ' Pul bier met korting' : 3,
+    'Pul bier'              : 3,
+    'Pul bier met korting'  : 3,
     'Fris'                  : 1,
-    '      Pul fris'        : 3,
+    'Pul fris'              : 3,
 }
 MAX_SECONDS_BETWEEN_ORDERS = 1800
 
