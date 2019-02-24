@@ -127,8 +127,12 @@ class Chaos:
                 self.electron_shells[2].append(None)
 
         # Drop in group if it did not have a location yet (outermost orbit with spots)
-        if all(order['group'] not in orbit for orbit in self.electron_shells):
-            target_shell = next(ix for ix, orbit in enumerate(self.electron_shells) if any(group is None for group in orbit))
+        if order['group'] in GROEPERINGEN and all(order['group'] not in orbit for orbit in self.electron_shells):
+            try:
+                target_shell = next(ix for ix, orbit in enumerate(self.electron_shells) if any(group is None for group in orbit))
+            except StopIteration:
+                target_shell = 2
+                self.electron_shells[target_shell].append(None)
             empty_spot = next(ix for ix, group in enumerate(self.electron_shells[target_shell]) if group is None)
             # TODO: message, possibly some notification for display
             self.electron_shells[target_shell][empty_spot] = order['group']
@@ -153,8 +157,13 @@ class Chaos:
             else:
                 bump_index = rand.randint(0,1)
 
-            target_shell = 2 if len(self.electron_shells[2]) > 0 else 1
-            empty_spot = next(ix for ix, group in enumerate(self.electron_shells[target_shell]) if group is None)
+            target_shell = 2 if len(self.electron_shells[2]) > 0 or all(group is not None for group in self.electron_shells[1]) else 1
+            try:
+                empty_spot = next(ix for ix, group in enumerate(self.electron_shells[target_shell]) if group is None)
+            except StopIteration:
+                target_shell = 2
+                empty_spot = len(self.electron_shells[2])
+                self.electron_shells.append(None)
             # TODO: message, possibly some notification for display
             bumped_group = self.electron_shells[0][bump_index]
             self.electron_shells[target_shell][empty_spot] = bumped_group
