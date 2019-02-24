@@ -202,7 +202,7 @@ class Chaos:
         return empty_shell is not None and filled_shell is not None
 
     def update_multiplier(self, group, new_shell):
-        self.multiplier[group] = (4 if new_shell == 0 else (2 if new_shell == 1 else 1))
+        self.multipliers[group] = (4 if new_shell == 0 else (2 if new_shell == 1 else 1))
 
     def mainloop(self, in_queue):
         last_send = 0
