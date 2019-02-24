@@ -19,8 +19,6 @@ BESTELLINGEN = {}
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
 
 class Example(Frame):
-
-    barkas = None
     MAP_CONS = {}
     MAP_S50 = {}
     LATEST_CHECK_MINUTES = 0
@@ -30,6 +28,7 @@ class Example(Frame):
         Frame.__init__(self, parent, background="white")   
          
         self.parent = parent
+        self.barkas = Barkas()
 
         for g in GROEPERINGEN:
             BESTELLINGEN[g] = self.get_null_order()
