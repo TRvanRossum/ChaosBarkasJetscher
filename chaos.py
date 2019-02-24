@@ -9,6 +9,7 @@ import queue
 import random
 import threading
 import time
+import sys
 import urllib.request
 
 DATUM = datetime.date(2019,2,25)
@@ -267,26 +268,40 @@ class Chaos:
             #print("Iter done")
 
 class BarkasProducer(threading.Thread):
-    def __init__(self, date_bon, out_queue):
+    def __init__(self, date_bon, out_queue, delay):
         super(BarkasProducer, self).__init__()
         print("Producer inited")
         self.running = True
         self.barkas = Barkas()
         self.date_bon = date_bon
         self.out_queue = out_queue
+        self.delay = delay
     def run(self):
         stream = self.barkas.get_orders_of_day_stream(self.date_bon)
         print("Producer started")
+        num = 0
         t = time.time()
         while self.running:
             self.out_queue.put(next(stream))
+            num += 1
+            if self.delay and num % 10 == 0 and num / 10 > time.time() - t:
+                time.sleep(5)
+                t = time.time()
         print("Producer stopping")
 
 def main():
-    print('Running')
     q = queue.Queue(10)
 
-    barkas_producer = BarkasProducer(DATUM, q)
+    try:
+        str_date = next(arg.split('=')[1] for arg in sys.argv if arg.startswith("--date="))
+        run_date = datetime.date(*[int(part.lstrip('0')) for part in str_date.split('-')])
+    except Exception as e:
+        run_date = DATUM
+
+    print('Running on {}'.format(run_date))
+
+    delay = "--delay" in sys.argv
+    barkas_producer = BarkasProducer(run_date, q, delay=delay)
     app = Chaos()
 
     barkas_producer.start()
