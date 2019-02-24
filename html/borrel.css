@@ -180,4 +180,14 @@ body{
         width: 5vw;
         height: 5vw;
     }
+    #scores thead,
+    #scores tbody,
+    #scores tr {
+        display: block;
+        float: left;
+    }
+    #scores th,
+    #scores td {
+        display: block;
+    }
 }
