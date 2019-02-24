@@ -188,7 +188,7 @@ class Chaos:
             rand.seed(hasher.digest())
             #TODO: priority for blue shellers
             #TODO: weight on scores
-            windex, winner = rand.choices(candidates)
+            windex, winner = rand.choice(candidates)
             self.electron_shells[empty_shell][empty_ix] = winner
             self.electron_shells[filled_shell][windex] = None
             self.update_multiplier(winner, empty_shell)
