@@ -145,8 +145,8 @@ class Chaos:
         #})
         self.messages.extend({
             "message":"{} is nu radioactief! Bestel het als je zelf dichter bij de kern wil komen.".format(prod),
-            "from":run_date.replace(hour=hour,minute=minute,second=0,microsecond=0).timestamp(),
-            "to":(run_date.replace(hour=hour,minute=minute,second=0,microsecond=0)+datetime.timedelta(minutes=30)).timestamp()
+            "from":datetime.datetime.combine(run_date, datetime.time(hour, minute)).timestamp(),
+            "to":(datetime.datetime.combine(run_date, datetime.time(hour, minute))+datetime.timedelta(minutes=30)).timestamp()
         } for (hour, minute), prod in BLUE_SHELL_PRODUCTS.items())
         # TODO: end!
 
