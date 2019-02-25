@@ -115,18 +115,6 @@ body{
 #electron12 {
     animation-delay: -2s;
 }
-#electron21 {
-    animation-delay: 0s;
-}
-#electron22 {
-    animation-delay: -1s;
-}
-#electron31 {
-    animation-delay: 0s;
-}
-#electron32 {
-    animation-delay: -2s;
-}
 
 @keyframes rot1 {
     from {

@@ -101,7 +101,7 @@ function handleUpdate(request){
             });
             // Add new
             for(var i = 0; i < electrons[2].length; i++){
-                outer.appendChild(makeElectron(3, i+1, 16/electrons[1].length));
+                outer.appendChild(makeElectron(3, i+1, 16/electrons[2].length));
             }
         }
         // Actually replace electrons
