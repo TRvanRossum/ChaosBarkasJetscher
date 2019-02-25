@@ -249,7 +249,7 @@ class Chaos:
             empty_spot = next(ix for ix, group in enumerate(self.electron_shells[target_shell]) if group is None)
             self.electron_shells[target_shell][empty_spot] = order['group']
             self.messages.append({
-                'message': "{} TODO translate has joined!".format(order['group']),
+                'message': "{} is in een baan om het atoom!".format(order['group']),
                 'from': order['timestamp'] / 1000,
                 'to': order['timestamp'] / 1000 + MSG_TIME_ORBIT,
             })
