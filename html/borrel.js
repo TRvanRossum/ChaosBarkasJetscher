@@ -86,7 +86,7 @@ function handleUpdate(request){
                 if(electrons[shell][spot] == null){
                     elec.setAttribute('style', '');
                 } else {
-                    elec.setAttribute('style', 'background-color: transparent; background-image: url("img/'+electrons[shell][spot]+'.png");');
+                    elec.setAttribute('style', 'background-color: transparent; background-image: url("img/'+electrons[shell][spot]+'.png"); border-radius: 0;');
                 }
             }
         }
