@@ -85,12 +85,15 @@ PRODUCT_VALUE = {
     'Jaegermeister'             : 7,
 }
 BLUE_SHELL_PRODUCTS = {
-    (20, 00) : 'Amaretto Disaronno',
+    (20, 0) : 'Amaretto Disaronno',
     (20, 30) : 'Wodka Puschkin',
-    (21, 00) : 'Jenever Ketel 1 Jonge',
+    (21, 0) : 'Jenever Ketel 1 Jonge',
     (21, 30) : 'Jaegermeister',
-    (22, 00) : 'Goldstrike',
-    (22, 30) : 'Jenever Hooghoudt Dubbele',
+    (22, 0) : 'Goldstrike',
+    (22, 30) : 'Pitcher bier',
+    (23, 0) : 'Jenever Hooghoudt Dubbele',
+    (23, 30) : 'Meter bier',
+    (23, 59) : 'Rum Stroh 80',
 }
 SECONDS_BETWEEN_BUMPS = 900
 MAX_SECONDS_BETWEEN_ORDERS = 1800
