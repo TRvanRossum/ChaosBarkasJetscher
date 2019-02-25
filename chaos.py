@@ -127,7 +127,7 @@ class Chaos:
     LATEST_CHECK_MINUTES = 0
     LATEST_CHECK_MINUTES_MULT = 0
 
-    def __init__(self):
+    def __init__(self, run_date):
         self.chaos_orders = []
         self.scores = {}
         self.electron_shells = [[None, None], [], []]
@@ -136,6 +136,16 @@ class Chaos:
         self.multipliers = {}
         self.messages = []
         self.blue_shells_fired = {}
+        # TODO: start time
+        #self.messages.append({
+        #    "message":
+        #})
+        self.messages.extend({
+            "message":"{} is nu radioactief! Bestel het als je zelf dichter bij de kern wil komen.".format(prod),
+            "from":run_date.replace(hour=hour,minute=minute,second=0,microsecond=0).timestamp(),
+            "to":(run_date.replace(hour=hour,minute=minute,second=0,microsecond=0)+datetime.timedelta(minutes=30)).timestamp()
+        } for (hour, minute), prod in BLUE_SHELL_PRODUCTS.items())
+        # TODO: end!
 
     def update_score(self, new_order):
         group = new_order['group']
@@ -435,7 +445,7 @@ def main():
 
     delay = "--delay" in sys.argv
     barkas_producer = BarkasProducer(run_date, q, delay=delay)
-    app = Chaos()
+    app = Chaos(run_date)
 
     barkas_producer.start()
     try:
