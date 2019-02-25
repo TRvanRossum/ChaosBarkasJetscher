@@ -214,8 +214,12 @@ class Chaos:
                 target_shell = 2
                 self.electron_shells[target_shell].append(None)
             empty_spot = next(ix for ix, group in enumerate(self.electron_shells[target_shell]) if group is None)
-            # TODO: message, possibly some notification for display
             self.electron_shells[target_shell][empty_spot] = order['group']
+            self.messages.append({
+                'message': "{} TODO translate has joined!".format(order['group']),
+                'from': order['timestamp'] / 1000,
+                'to': order['timestamp'] / 1000 + 180,
+            })
 
         # Maybe kick out one of the center ones
         do_bump = False
@@ -244,11 +248,15 @@ class Chaos:
                 target_shell = 2
                 empty_spot = len(self.electron_shells[2])
                 self.electron_shells.append(None)
-            # TODO: message, possibly some notification for display
             bumped_group = self.electron_shells[0][bump_index]
             self.electron_shells[target_shell][empty_spot] = bumped_group
             self.electron_shells[0][bump_index] = None
             self.update_multiplier(bumped_group, target_shell)
+            self.messages.append({
+                'message': "{} is uit de binnenste baan gegooid!".format(bumped_group),
+                'from': order['timestamp'] / 1000,
+                'to': order['timestamp'] / 1000 + 300,
+            })
 
         return do_bump
 
@@ -274,7 +282,11 @@ class Chaos:
             self.electron_shells[empty_shell][empty_ix] = winner
             self.electron_shells[filled_shell][windex] = None
             self.update_multiplier(winner, empty_shell)
-            # TODO: message, possibly some notification for display
+            self.messages.append({
+                'message': "{} heeft een {} gevonden".format(winner, "plek in de binnenste baan" if empty_shell == 0 else "betere plek"),
+                'from': time.time(),
+                'to': time.time() / 1000 + 90,
+            })
 
         # Check if there's another empty spot below a shell with electrons
         empty_shell = next((ix for ix, orbit in enumerate(self.electron_shells) if any(group is None for group in orbit)), None)
@@ -324,7 +336,11 @@ class Chaos:
                 if order['group'] == 'Chaos':
                     self.chaos_orders.append(order)
                     print("Chaos order {}x {}".format(order['amount'], order['product']))
-                    # TODO: send (or queue) message for UI
+                    self.messages.append({
+                        'message': "Chaos heeft {} besteld.".format(order['product']),
+                        'from': order['timestamp'] / 1000 + 300,
+                        'to': order['timestamp'] / 1000 + 1800,
+                    })
                 elif order['group'] in GROEPERINGEN:
                     self.update_score(order)
                     print("Score updated for {} to {} for ordering {}x {}".format(order['group'], self.scores[order['group']], order['amount'], order['product']))
