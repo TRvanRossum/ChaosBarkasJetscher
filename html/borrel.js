@@ -26,9 +26,34 @@ function handleUpdate(request){
         console.log("Invalid JSON: "+request.responseText);
         return;
     }
-    console.log(parsed);
+    //console.log(parsed);
     if(parsed.messages != undefined){
-        console.log("Messages!");
+        parsed.messages.forEach(function(message){
+            var cur_time = Math.floor(Date.now() / 1000);
+            var appear_ts = message.from;
+            var leave_ts = message.to;
+
+            var message_id = ""+appear_ts+"-"+leave_ts;
+            if(document.getElementById(message_id) != null || leave_ts < cur_time){
+                return;
+            }
+            var message_pane = document.getElementById('right-bar');
+            var msg_el = document.createElement('p');
+            msg_el.setAttribute('id', message_id);
+            msg_el.innerHTML = message.message;
+            msg_el.hidden = true;
+            message_pane.appendChild(msg_el);
+            window.setTimeout(function(){
+                var msg_el = document.getElementById(message_id);
+                msg_el.hidden = false;
+
+                var cur_time = Math.floor(Date.now() / 1000);
+                window.setTimeout(function(){
+                    var msg_el = document.getElementById(message_id);
+                    msg_el.parentNode.removeChild(msg_el);
+                }, Math.max(0, (leave_ts - cur_time)*1000));
+            }, Math.max(0, (appear_ts - cur_time)*1000));
+        });
     }
     if(parsed.scores != undefined){
         var sortedScores = parsed.scores;
