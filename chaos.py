@@ -96,6 +96,7 @@ SECONDS_BETWEEN_BUMPS = 900
 MAX_SECONDS_BETWEEN_ORDERS = 1800
 DECAY_INTERVAL = 10
 BLUE_SHELL_DECAY_INTERVAL = 1200
+MSG_TIME_ORBIT = 300
 
 # Lifted from python 3.6+
 class BetterRandom(random.Random):
@@ -228,7 +229,7 @@ class Chaos:
             self.messages.append({
                 'message': "{} TODO translate has joined!".format(order['group']),
                 'from': order['timestamp'] / 1000,
-                'to': order['timestamp'] / 1000 + 180,
+                'to': order['timestamp'] / 1000 + MSG_TIME_ORBIT,
             })
 
         # Maybe kick out one of the center ones
@@ -270,7 +271,7 @@ class Chaos:
             self.messages.append({
                 'message': "{} is uit de binnenste baan gegooid!".format(bumped_group),
                 'from': order['timestamp'] / 1000,
-                'to': order['timestamp'] / 1000 + 300,
+                'to': order['timestamp'] / 1000 + MSG_TIME_ORBIT,
             })
 
         return do_bump
@@ -300,7 +301,7 @@ class Chaos:
             self.messages.append({
                 'message': "{} heeft een {} gevonden".format(winner, "plek in de binnenste baan" if empty_shell == 0 else "betere plek"),
                 'from': time.time(),
-                'to': time.time() / 1000 + 90,
+                'to': time.time() / 1000 + MSG_TIME_ORBIT,
             })
 
         # Check if there's another empty spot below a shell with electrons
@@ -374,7 +375,7 @@ class Chaos:
                     self.messages.append({
                         'message': "Chaos heeft {} besteld.".format(order['product']),
                         'from': order['timestamp'] / 1000 + 300,
-                        'to': order['timestamp'] / 1000 + 1800,
+                        'to': order['timestamp'] / 1000 + MAX_SECONDS_BETWEEN_ORDERS,
                     })
                 elif order['group'] in GROEPERINGEN:
                     self.update_score(order)
