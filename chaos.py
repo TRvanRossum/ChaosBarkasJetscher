@@ -101,6 +101,9 @@ DECAY_INTERVAL = 10
 BLUE_SHELL_DECAY_INTERVAL = 1200
 MSG_TIME_ORBIT = 300
 
+GAME_START = datetime.datetime(2019, 2, 25, 20, 0, 0)
+GAME_END = datetime.datetime(2019, 2, 26, 0, 30, 0)
+
 # Lifted from python 3.6+
 class BetterRandom(random.Random):
     def choices(self, population, weights=None, *, cum_weights=None, k=1):
@@ -139,10 +142,16 @@ class Chaos:
         self.multipliers = {}
         self.messages = []
         self.blue_shells_fired = {}
-        # TODO: start time
-        #self.messages.append({
-        #    "message":
-        #})
+        self.messages.append({
+            "message": "<b>Het spel is begonnen!</b>",
+            "from": GAME_START.timestamp(),
+            "to": (GAME_START + datetime.timedelta(minutes=5)).timestamp(),
+        })
+        self.messages.append({
+            "message": "<b>Het spel is afgelopen!</b>",
+            "from": GAME_END.timestamp(),
+            "to": (GAME_END + datetime.timedelta(hours=10)).timestamp(),
+        })
         self.messages.extend({
             "message":"{} is nu radioactief! Bestel het als je zelf dichter bij de kern wil komen.".format(prod),
             "from":datetime.datetime.combine(run_date, datetime.time(hour, minute)).timestamp(),
