@@ -84,9 +84,18 @@ PRODUCT_VALUE = {
     'De Kuyper Peachtree'       : 5,
     'Jaegermeister'             : 7,
 }
+BLUE_SHELL_PRODUCTS = {
+    (20, 00) : 'Amaretto Disaronno',
+    (20, 30) : 'Wodka Puschkin',
+    (21, 00) : 'Jenever Ketel 1 Jonge',
+    (21, 30) : 'Jaegermeister',
+    (22, 00) : 'Goldstrike',
+    (22, 30) : 'Jenever Hooghoudt Dubbele',
+}
 SECONDS_BETWEEN_BUMPS = 900
 MAX_SECONDS_BETWEEN_ORDERS = 1800
 DECAY_INTERVAL = 10
+BLUE_SHELL_DECAY_INTERVAL = 1200
 
 # Lifted from python 3.6+
 class BetterRandom(random.Random):
@@ -125,6 +134,7 @@ class Chaos:
         self.next_electron_infall = 0
         self.multipliers = {}
         self.messages = []
+        self.blue_shells_fired = {}
 
     def update_score(self, new_order):
         group = new_order['group']
@@ -226,8 +236,13 @@ class Chaos:
         if self.next_electron_bump <= order['timestamp'] / 1000:
             do_bump = True
             self.next_electron_bump = (order['timestamp'] / 1000) + SECONDS_BETWEEN_BUMPS
-        if not do_bump:
-            pass # TODO: Test for "blue shell" orders
+        if not do_bump and self.is_blue_shell(order):
+            do_bump = True
+            self.messages.append({
+                'message': "{} heeft een radioactieve bestelling gedaan! Hun volgende bestelling moet voorlopig tenminste {} groot zijn.".format(order['group'], self.blue_shells_fired[group]['amount'])
+                'from': order['timestamp'],
+                'to': self.blue_shells_fired[group]['timeout'],
+            })
 
         if do_bump:
             rand = random.Random()
@@ -297,6 +312,26 @@ class Chaos:
 
     def update_multiplier(self, group, new_shell):
         self.multipliers[group] = (4 if new_shell == 0 else (2 if new_shell == 1 else 1))
+
+    def is_blue_shell(self, order):
+        ts = order['timestamp'] / 1000
+        dt = datetime.datetime.fromtimestamp(ts)
+        prod = order['product']
+        group = order['group']
+        shell_prod = next(product for (hour, minute), product in BLUE_SHELL_PRODUCTS.items() if (dt.hour > hour) or (dt.hour == hour and dt.minute >= minute)), None)
+        if prod != shell_prod:
+            return False
+        if group not in self.blue_shells_fired or self.blue_shells_fired[group]['timeout'] < ts:
+            self.blue_shells_fired[group] = {
+                'timeout' : ts + BLUE_SHELL_DECAY_INTERVAL,
+                'amount' : 3,
+            }
+            return True
+        if order['amount'] >= self.blue_shells_fired[group]['amount']:
+            self.blue_shells_fired[group]['timeout'] = ts + BLUE_SHELL_INTERVAL
+            self.blue_shells_fired[group]['amount'] *= 3
+            return True
+        return False
 
     def mainloop(self, in_queue):
         last_send = 0
