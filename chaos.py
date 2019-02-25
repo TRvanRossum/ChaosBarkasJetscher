@@ -329,8 +329,9 @@ class Chaos:
         dt = datetime.datetime.fromtimestamp(ts)
         prod = order['product']
         group = order['group']
+        special = prod == 'Advocaat 0,5L'
         shell_prod = next((product for (hour, minute), product in BLUE_SHELL_PRODUCTS.items() if (dt.hour > hour) or (dt.hour == hour and dt.minute >= minute)), None)
-        if prod != shell_prod:
+        if prod not in (shell_prod, special, ):
             return False
         if group not in self.blue_shells_fired or self.blue_shells_fired[group]['timeout'] < ts:
             self.blue_shells_fired[group] = {
@@ -338,7 +339,7 @@ class Chaos:
                 'amount' : 3,
             }
             return True
-        if order['amount'] >= self.blue_shells_fired[group]['amount']:
+        if order['amount'] >= self.blue_shells_fired[group]['amount'] or special:
             self.blue_shells_fired[group]['timeout'] = ts + BLUE_SHELL_INTERVAL
             self.blue_shells_fired[group]['amount'] *= 3
             return True
