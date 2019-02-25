@@ -12,6 +12,10 @@ import time
 import sys
 import urllib.request
 
+# For random.choices
+from bisect import bisect as _bisect
+from itertools import accumulate as _accumulate, repeat as _repeat
+
 DATUM = datetime.date(2019,2,25)
 GROEPERINGEN = ['Nobel', 'Krat', 'Bestuur 122', 'Spetter', 'Quast', 'Octopus', 'McClan', 'Kurk', 'Apollo', 'Schranz', 'Asene', 'Kielzog', 'Scorpios', 'Fabula', 'TDC 66']
 SERVERURL = 'https://borrel.collegechaos.nl:2003'
@@ -36,6 +40,31 @@ PRODUCT_VALUE = {
 SECONDS_BETWEEN_BUMPS = 900
 MAX_SECONDS_BETWEEN_ORDERS = 1800
 DECAY_INTERVAL = 10
+
+# Lifted from python 3.6+
+class BetterRandom(random.Random):
+    def choices(self, population, weights=None, *, cum_weights=None, k=1):
+        """Return a k sized list of population elements chosen with replacement.
+        If the relative weights or cumulative weights are not specified,
+        the selections are made with equal probability.
+        """
+        random = self.random
+        n = len(population)
+        if cum_weights is None:
+            if weights is None:
+                _int = int
+                n += 0.0    # convert to float for a small speed improvement
+                return [population[_int(random() * n)] for i in _repeat(None, k)]
+            cum_weights = list(_accumulate(weights))
+        elif weights is not None:
+            raise TypeError('Cannot specify both weights and cumulative weights')
+        if len(cum_weights) != n:
+            raise ValueError('The number of weights does not match the population')
+        bisect = _bisect
+        total = cum_weights[-1] + 0.0   # convert to float
+        hi = n - 1
+        return [population[bisect(cum_weights, random() * total, 0, hi)]
+                for i in _repeat(None, k)]
 
 class Chaos:
     LATEST_CHECK_MINUTES = 0
@@ -181,7 +210,7 @@ class Chaos:
         # This check should always return true, but let's make sure
         if filled_shell is not None:
             candidates = [(ix, group) for ix, group in enumerate(self.electron_shells[filled_shell]) if group is not None]
-            rand = random.Random()
+            rand = BetterRandom()
             # Hashing current config + scores for seed. Hopefully that's deterministic enough
             hasher = hashlib.sha256()
             hasher.update(json.dumps(self.electron_shells).encode())
@@ -189,7 +218,7 @@ class Chaos:
             rand.seed(hasher.digest())
             #TODO: priority for blue shellers
             #TODO: weight on scores
-            windex, winner = rand.choice(candidates)
+            windex, winner = rand.choices(candidates)[0]
             self.electron_shells[empty_shell][empty_ix] = winner
             self.electron_shells[filled_shell][windex] = None
             self.update_multiplier(winner, empty_shell)
