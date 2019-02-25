@@ -124,6 +124,7 @@ class Chaos:
         self.next_electron_bump = 0
         self.next_electron_infall = 0
         self.multipliers = {}
+        self.messages = []
 
     def update_score(self, new_order):
         group = new_order['group']
@@ -145,9 +146,11 @@ class Chaos:
 
     def send_current_state(self):
         try:
+            self.messages = [msg for msg in self.messages if msg['to'] > time.time()]
             senddata = {
                 'scores' : [{'group':g, 'score':s, 'multiplier':self.multipliers[g]} for g,s in self.scores.items()],
                 'electrons' : self.electron_shells,
+                'messages' : self.messages,
             }
             urllib.request.urlopen(SERVERURL, json.dumps(senddata).encode())
         except Exception as e:
