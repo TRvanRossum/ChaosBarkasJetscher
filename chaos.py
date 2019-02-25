@@ -239,7 +239,7 @@ class Chaos:
         if not do_bump and self.is_blue_shell(order):
             do_bump = True
             self.messages.append({
-                'message': "{} heeft een radioactieve bestelling gedaan! Hun volgende bestelling moet voorlopig tenminste {} groot zijn.".format(order['group'], self.blue_shells_fired[group]['amount'])
+                'message': "{} heeft een radioactieve bestelling gedaan! Hun volgende bestelling moet voorlopig tenminste {} groot zijn.".format(order['group'], self.blue_shells_fired[group]['amount']),
                 'from': order['timestamp'],
                 'to': self.blue_shells_fired[group]['timeout'],
             })
@@ -318,7 +318,7 @@ class Chaos:
         dt = datetime.datetime.fromtimestamp(ts)
         prod = order['product']
         group = order['group']
-        shell_prod = next(product for (hour, minute), product in BLUE_SHELL_PRODUCTS.items() if (dt.hour > hour) or (dt.hour == hour and dt.minute >= minute)), None)
+        shell_prod = next((product for (hour, minute), product in BLUE_SHELL_PRODUCTS.items() if (dt.hour > hour) or (dt.hour == hour and dt.minute >= minute)), None)
         if prod != shell_prod:
             return False
         if group not in self.blue_shells_fired or self.blue_shells_fired[group]['timeout'] < ts:
