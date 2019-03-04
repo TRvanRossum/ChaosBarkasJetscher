@@ -99,7 +99,7 @@ SECONDS_BETWEEN_BUMPS = 900
 MAX_SECONDS_BETWEEN_ORDERS = 1800
 DECAY_INTERVAL = 10
 BLUE_SHELL_DECAY_INTERVAL = 1200
-MSG_TIME_ORBIT = 300
+MSG_TIME_ORBIT = 90
 
 GAME_START = datetime.datetime(2019, 2, 25, 20, 0, 0)
 GAME_END = datetime.datetime(2019, 2, 26, 0, 30, 0)
@@ -261,8 +261,9 @@ class Chaos:
             self.next_electron_bump = (order['timestamp'] / 1000) + SECONDS_BETWEEN_BUMPS
         if not do_bump and self.is_blue_shell(order):
             do_bump = True
+            group = order['group']
             self.messages.append({
-                'message': "{} heeft een radioactieve bestelling gedaan! Hun volgende bestelling moet voorlopig tenminste {} groot zijn.".format(order['group'], self.blue_shells_fired[group]['amount']),
+                'message': "{} heeft een radioactieve bestelling gedaan! Volgende tenminste {} groot".format(order['group'], self.blue_shells_fired[group]['amount']),
                 'from': order['timestamp'],
                 'to': self.blue_shells_fired[group]['timeout'],
             })
@@ -319,11 +320,12 @@ class Chaos:
             windex, winner = rand.choices(candidates)[0]
             self.electron_shells[empty_shell][empty_ix] = winner
             self.electron_shells[filled_shell][windex] = None
+            print("Moved {} from {}:{} to {}:{}".format(winner, filled_shell, windex, empty_shell, empty_ix))
             self.update_multiplier(winner, empty_shell)
             self.messages.append({
                 'message': "{} heeft een {} gevonden".format(winner, "plek in de binnenste baan" if empty_shell == 0 else "betere plek"),
                 'from': time.time(),
-                'to': time.time() / 1000 + MSG_TIME_ORBIT,
+                'to': time.time() + MSG_TIME_ORBIT,
             })
 
         # Check if there's another empty spot below a shell with electrons
