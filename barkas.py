@@ -154,12 +154,9 @@ class Barkas(object):
     def get_todays_orders_since(self, ts_from):
         return self.get_orders_of_day_since( (datetime.datetime.now() - datetime.timedelta(hours = 12)).date(), ts_from )
     def get_orders_of_day_since(self, date_bon, ts_from, limit=None):
-        bon_ids = self.get_bon_ids_of_day(date_bon)
-        if not bon_ids:
-            return []
         with self.connection.cursor() as cursor:
-            sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN %s AND Bestelling_Time > %s ORDER BY Bestelling_Time ASC"
-            args = ( tuple(bon_ids), ts_from, )
+            sql = "SELECT * FROM bestelling WHERE Bestelling_Bon IN (SELECT Bon_Id FROM bon WHERE Bon_Datum = %s) AND Bestelling_Time > %s ORDER BY Bestelling_Time ASC"
+            args = (date_bon.isoformat() , ts_from, )
             if limit is not None:
                 sql += " LIMIT %s"
                 args += ( limit, )
@@ -192,19 +189,6 @@ class Barkas(object):
                     'type'      : active_type,
                     'amount'    : amount,
                 }
-
-    # New bonnen will be opened during the day, but cache for short periods
-    def get_bon_ids_of_day(self, date_bon):
-        if self.date_to_bon_ids_next_update <= datetime.datetime.now():
-            self.date_to_bon_ids = {}
-        if date_bon not in self.date_to_bon_ids:
-            with self.connection.cursor() as cursor:
-                sql = "SELECT Bon_Id FROM bon WHERE Bon_Datum = %s"
-                cursor.execute(sql, ( date_bon.isoformat(), ))
-                bon_ids = [int(row['Bon_Id']) for row in cursor.fetchall()]
-                self.date_to_bon_ids[date_bon] = bon_ids
-                self.date_to_bon_ids_next_update = datetime.datetime.now() + datetime.timedelta(minutes=1)
-        return self.date_to_bon_ids[date_bon]
 
 if __name__ == '__main__':
     b = Barkas()
