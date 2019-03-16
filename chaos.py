@@ -314,8 +314,10 @@ class Chaos:
             hasher.update(json.dumps(self.scores).encode())
             rand.seed(hasher.digest())
             # Weight on scores
-            avg_score = sum(self.scores[group]/len(candidates) for group in candidates)
-            weights = [max(5, min(15, 10+10*(avg_score - self.scores[group])/avg_score )) for group in candidates]
+            avg_score = sum(self.scores[group]/len(candidates) for _,group in candidates)
+            if avg_score == 0:
+                avg_score = 1
+            weights = [max(5, min(15, 10+10*(avg_score - self.scores[group])/avg_score )) for _, group in candidates]
             #TODO: priority for blue shellers
             windex, winner = rand.choices(candidates)[0]
             self.electron_shells[empty_shell][empty_ix] = winner
